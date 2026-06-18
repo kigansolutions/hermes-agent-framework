@@ -36,106 +36,102 @@ class ToolExecutor:
     def __init__(self):
         self.history: List[ToolResult] = []
         
-        # Tool definitions with descriptions and common commands
+        # Tool definitions: an example catalog of common CLI utilities.
+        # The executor is domain-agnostic — these are just sample entries
+        # to demonstrate the registry shape. Add your own tools freely.
         self.tools = {
-            # Reconnaissance
+            # Discovery / network
             'nmap': {
                 'description': 'Port scanner and service detection',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install nmap',
                 'example': 'nmap -sV -p- target.com'
             },
             'masscan': {
                 'description': 'Fast port scanner',
-                'category': 'reconnaissance', 
+                'category': 'discovery',
                 'install': 'apt install masscan',
                 'example': 'masscan -p1-65535 target.com --rate=10000'
             },
             'subfinder': {
                 'description': 'Passive subdomain enumeration',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install subfinder',
                 'example': 'subfinder -d target.com'
             },
             'amass': {
                 'description': 'Subdomain enumeration',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install amass',
                 'example': 'amass enum -d target.com'
             },
             'gobuster': {
                 'description': 'Directory/DNS/VHost enumeration',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install gobuster',
                 'example': 'gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt'
             },
             'ffuf': {
                 'description': 'Fast web fuzzer',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install ffuf',
                 'example': 'ffuf -u http://target.com/FUZZ -w wordlist.txt'
             },
             'whatweb': {
                 'description': 'Web technology fingerprinting',
-                'category': 'reconnaissance',
+                'category': 'discovery',
                 'install': 'apt install whatweb',
                 'example': 'whatweb target.com'
             },
-            
-            # Vulnerability Scanning
-            'nikto': {
-                'description': 'Web server vulnerability scanner',
-                'category': 'vulnerability-scanning',
-                'install': 'apt install nikto',
-                'example': 'nikto -h target.com'
-            },
+
+            # Analysis / template-driven
             'nuclei': {
-                'description': 'Template-based vulnerability scanner',
-                'category': 'vulnerability-scanning',
+                'description': 'Template-based scanner',
+                'category': 'analysis',
                 'install': 'apt install nuclei',
                 'example': 'nuclei -u target.com -severity critical,high'
             },
             'wapiti': {
-                'description': 'Black-box web vulnerability scanner',
-                'category': 'vulnerability-scanning',
+                'description': 'Black-box web scanner',
+                'category': 'analysis',
                 'install': 'apt install wapiti',
                 'example': 'wapiti -u target.com'
             },
-            
-            # Exploitation
+
+            # Build / action construction
             'sqlmap': {
-                'description': 'SQL injection tool',
-                'category': 'exploitation',
+                'description': 'SQL probe and validation tool',
+                'category': 'build',
                 'install': 'apt install sqlmap',
                 'example': 'sqlmap -u "http://target.com/page.php?id=1"'
             },
             'xsstrike': {
-                'description': 'XSS vulnerability scanner',
-                'category': 'exploitation',
+                'description': 'XSS probe tool',
+                'category': 'build',
                 'install': 'pip install xsstrike',
                 'example': 'xsstrike -u target.com'
             },
             'hydra': {
-                'description': 'Online password cracker',
-                'category': 'exploitation',
+                'description': 'Credential-testing tool (network logins)',
+                'category': 'build',
                 'install': 'apt install hydra',
                 'example': 'hydra -L users.txt -P passwords.txt target.com ssh'
             },
-            
-            # API Testing
+
+            # Integration / API and HTTP
             'httpx': {
                 'description': 'HTTP toolkit',
-                'category': 'api-testing',
+                'category': 'integration',
                 'install': 'go install github.com/projectdiscovery/httpx@latest',
                 'example': 'httpx -u target.com'
             },
             'httpie': {
                 'description': 'CLI HTTP client',
-                'category': 'api-testing',
+                'category': 'integration',
                 'install': 'pip install httpie',
                 'example': 'http GET target.com/api/endpoint'
             },
-            
+
             # Utilities
             'curl': {
                 'description': 'HTTP client',

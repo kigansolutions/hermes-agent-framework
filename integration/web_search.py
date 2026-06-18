@@ -1,5 +1,5 @@
 """
-PromptOrchestrator Web Search
+prompt-orchestrator — Web Search
 Privacy-respecting web search integration
 """
 

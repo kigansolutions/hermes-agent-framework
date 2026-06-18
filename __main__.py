@@ -45,7 +45,7 @@ PHASE_ALIASES = {
 }
 
 
-class PromptOrchestrator:
+class Orchestrator:
     """Top-level façade. Holds the four core systems and exposes
     a small set of high-level workflow verbs."""
 
@@ -194,7 +194,7 @@ def interactive():
     """Interactive REPL mode."""
     import readline
 
-    orch = PromptOrchestrator()
+    orch = Orchestrator()
 
     print("""
 Commands:
@@ -344,7 +344,7 @@ def main():
         with open(args.config) as f:
             config = json.load(f)
 
-    orch = PromptOrchestrator(config)
+    orch = Orchestrator(config)
 
     if args.interactive or not args.command:
         interactive()

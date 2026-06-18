@@ -1,4 +1,4 @@
-# Knowledge module init
+# Knowledge module init — prompt-orchestrator
 from .knowledge import KnowledgeBase
 from .wiki import KnowledgeWiki
 

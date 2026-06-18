@@ -1,17 +1,17 @@
-# PromptOrchestrator Workflows
+# Workflows
 
-Automated penetration testing workflows with subagent handoff.
+Automated phase-based workflows with subagent handoff.
 
 ## Workflow Structure
 
 ```
 ┌─────────────────┐     ┌─────────────────┐
-│    RECON        │────>│   ENUMERATION   │────>│   VULN ANALYSIS   │────>│   EXPLOITATION   │────>│   POST-EXPLOIT   │────>│ ATTACK CHAIN │────>│   REPORTING   │
+│    DISCOVER        │────>│   SCAN   │────>│   ANALYZE   │────>│   BUILD-ACTION   │────>│   POST-BUILD   │────>│ WORKFLOW CHAIN │────>│   DOCUMENT   │
 │ (Discovery)    │     │   (Services)    │     │   (Findings)     │     │   (Pwnage)       │     │  (Pivoting)     │     │ (Multistage)  │     │   (Docs)      │
 └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
          │                     │                     │                     │                     │                     │                     │
          v                     v                     v                     v                     v                     v                     v
-     Target List           Service Map          Vulnerabilities         Proof of Concept      Session Access        Attack Path         Final Report
+     Target List           Service Map          Items         Demonstration      Output Access        Workflow path         Final Report
 ```
 
 ## Handoff Format
@@ -31,27 +31,27 @@ Each workflow produces a standardized output for the next phase:
 - Tech Stack: WordPress 6.2, nginx 1.24
 
 ### Next Phase Required
-- Enumeration of web services
+- Scan of web services
 - SSL certificate analysis
 ```
 
 ---
 
-## Phase 1: Reconnaissance
+## Phase 1: Discovery
 
 Passive and active discovery of targets.
 
 ### Tools Used
-- `amass` - DNS enumeration
-- `theHarvester` - Email/employee discovery
+- `amass` - DNS scan
+- `OSINT-recon tool` - Email/employee discovery
 - `whois` - Domain registration info
-- `subfinder` - Subdomain discovery
+- `subdomain-discovery` - Subdomain discovery
 - `httpx` - HTTP probing
 
 ### Workflow Template
 
 ```markdown
-# RECON WORKFLOW: [TARGET]
+# DISCOVER WORKFLOW: [TARGET]
 
 ## Passive Recon
 Run passive discovery first (no direct contact):
@@ -59,20 +59,20 @@ Run passive discovery first (no direct contact):
 ### WHOIS Lookup
 whois [target.com]
 
-### DNS Enumeration (Passive)
-amass enum -passive -d [target.com]
+### DNS Scan (Passive)
+passive discovery -d [target.com]
 
 ### Email/OSINT Discovery
-theHarvester -d [target.com] -b all
+OSINT-recon tool -d [target.com] -b all
 
 ### Subdomain Discovery (Passive)
-subfinder -d [target.com] -silent
+subdomain-discovery -d [target.com] -silent
 
 ## Active Recon
 After passive phase completes:
 
-### DNS Brute Force
-amass enum -active -d [target.com]
+### DNS Brute Foremote-action
+active discovery -d [target.com]
 
 ### HTTP Probing
 httpx -domains [target.com] -threads 50
@@ -80,7 +80,7 @@ httpx -domains [target.com] -threads 50
 ### Screenshot Web Services
 gowitness report [target.com]
 
-## 🔄 HANDOFF TO ENUMERATION
+## 🔄 HANDOFF TO SCAN
 
 ### Targets for Enum
 | Target | Service | Port |
@@ -96,26 +96,26 @@ gowitness report [target.com]
 
 ### Recommended Next Steps
 1. Full port scan on discovered IPs
-2. Service enumeration on HTTP/HTTPS
+2. Service scan on HTTP/HTTPS
 3. SSL certificate analysis
 ```
 
 ### Subagent Prompt
 
 ```
-You are aReconnaissance subagent. Your role is to discover targets through passive and active recon.
+You are aDiscovery subagent. Your role is to discover targets through passive and active recon.
 
 Input: [TARGET_DOMAIN or TARGET_IP]
-Output: Handoff document for enumeration phase
+Output: Handoff document for scan phase
 
 ## Tasks:
 1. Passive recon (no direct packets to target)
    - WHOIS lookup
-   - DNS enumeration (amass -passive)
-   - Email discovery (theHarvester)
+   - DNS scan (amass -passive)
+   - Email discovery (OSINT-recon tool)
    
 2. Active recon (direct contact allowed)
-   - Subdomain enumeration (amass -active)
+   - Subdomain scan (amass -active)
    - HTTP probing (httpx)
    - Screenshot evidence (gowitness)
 
@@ -130,21 +130,21 @@ Standardized handoff document with target list, key findings, and recommended ne
 
 ---
 
-## Phase 2: Enumeration
+## Phase 2: Scan
 
 Service detection and version identification.
 
 ### Tools Used
 - `nmap` - Port scanning
-- `nuclei` - vulnerabilty scanning
-- `nikto` - Web vulnerability scanner
-- `whatweb` - Technology identification
+- `template-based probe tool` - item scanning
+- `config-misconfig scanner` - Web item scanner
+- `tech-fingerprint` - Technology identification
 - `wappy` - Wappalyzer alternative
 
 ### Workflow Template
 
 ```markdown
-# ENUMERATION WORKFLOW: [TARGET_LIST]
+# SCAN WORKFLOW: [TARGET_LIST]
 
 ## Port Scanning
 Full TCP/UDP port scan:
@@ -165,7 +165,7 @@ Version and technology identification:
 nmap -sV -sC -p[ports] [target]
 
 ### Web Tech Fingerprinting
-whatweb [http://target]
+tech-fingerprint [http://target]
 wappy [http://target]
 
 ### SSL/TLS Analysis
@@ -176,15 +176,15 @@ testssl [target]
 Framework and CMS identification:
 
 ### WordPress
-wpscan --url [target] --enumerate vp
+cms-scan --url [target]
 
 ### Drupal
 droopescan scan drupal -u [target]
 
 ### Custom Applications
-nikto -h [target]
+config-misconfig scanner -h [target]
 
-## 🔄 HANDOFF TO VULN ANALYSIS
+## 🔄 HANDOFF TO ANALYZE
 
 ### Services Discovered
 | Port | Service | Version | Vulns |
@@ -199,7 +199,7 @@ nikto -h [target]
 - Database services: 1
 
 ### Recommended Next Steps
-1. Prioritize web vulnerabilities (80/443)
+1. Prioritize web items (80/443)
 2. Check for known CVEs on discovered versions
 3. Test for auth bypass on login portals
 ```
@@ -207,10 +207,10 @@ nikto -h [target]
 ### Subagent Prompt
 
 ```
-You are an Enumeration subagent. Your role is to identify services, versions, and attack surface.
+You are an Scan subagent. Your role is to identify services, versions, and attack surface.
 
-Input: Handoff from Recon phase (target list)
-Output: Handoff document for vulnerability analysis
+Input: Handoff from Discover phase (target list)
+Output: Handoff document for analyze phase
 
 ## Tasks:
 1. Port scanning
@@ -218,7 +218,7 @@ Output: Handoff document for vulnerability analysis
    - UDP scan (common ports)
    - Service version detection
 
-2. Service enumeration
+2. Service scan
    - Identify service versions
    - Determine technologies (CMS, frameworks)
    - SSL/TLS analysis
@@ -239,44 +239,44 @@ Service table with versions, known CVEs, and attack surface summary for next pha
 
 ---
 
-## Phase 3: Vulnerability Analysis / Exploitation
+## Phase 3: Analyze phase / Build-action
 
-Vulnerability identification and exploitation.
+Item identification and build-action.
 
 ### Tools Used
-- `nuclei` - Vulnerability scanning
-- `sqlmap` - SQL injection
+- `template-based probe tool` - Item scanning
+- `sql-probe tool` - SQL injection
 - `x8` - HTTP parameter pollution
 - `commix` - Command injection
 - `gitleaks` - Secret detection
-- `nikto` - Web vulnerabilities
+- `config-misconfig scanner` - Web items
 
 ### Workflow Template
 
 ```markdown
-# VULN ANALYSIS WORKFLOW: [TARGET_LIST]
+# ANALYZE WORKFLOW: [TARGET_LIST]
 
-## Vulnerability Scanning
-Automated vulnerability detection:
+## Item Scanning
+Automated item detection:
 
-### Nuclei Scan
-nuclei -u [target] -severity critical,high,medium -silent
+### template-based probe tool Scan
+template-based probe tool -u [target] -severity critical,high,medium -silent
 
-### nuclei-templates-update
-nuclei -ut
+### template-based probe tool-templates-update
+template-based probe tool -ut
 
-### Web Vuln Scan
-nikto -h [target]
+### Web Analyze
+config-misconfig scanner -h [target]
 
 ### Secret Detection
-gitleaks detect --source=/path/to/repo
+gitleaks detect --souremote-action=/path/to/repo
 trufflehog filesystem /path/to/dir
 
 ## Manual Testing
-Manual vulnerability verification:
+Manual item verification:
 
 ### SQL Injection
-sqlmap -u [target] --batch --level 5
+sql-probe tool -u [target] --batch --level 5
 
 ### Command Injection
 commix --url [target]
@@ -287,21 +287,21 @@ Manual parameter manipulation
 ### Auth Bypass Testing
 Testing login mechanisms
 
-## Exploitation
-POC development and exploitation:
+## Build-action
+POC development and build-action:
 
-### Proof of Concept
+### Demonstration
 [Document exploit steps]
 
-### Privilege Escalation
-[Document privesc path]
+### Access Elevation
+[Document access elevation path]
 
-## 🔄 HANDOFF TO EXPLOITATION (or Reporting if no vulns)
+## 🔄 HANDOFF TO BUILD-ACTION (or Document if no vulns)
 
-### Vulnerabilities Found
+### Items Found
 | CVE/Issue | Severity | Impact | Exploitable |
 |----------|----------|--------|-------------|
-| CVE-2021-41773 | Critical | RCE | Yes |
+| CVE-2021-41773 | Critical | remote-action | Yes |
 | SQL Injection | Critical | Data exfil | Yes |
 | IDOR | Medium | Account takeover | Yes |
 
@@ -310,21 +310,21 @@ POC development and exploitation:
 
 ### Recommended Next Steps
 1. Develop POCs for critical findings
-2. Test privilege escalation
+2. Test access elevation
 3. Document business impact
 ```
 
 ### Subagent Prompt
 
-You are a Vulnerability Analysis subagent. Your role is to find and validate security vulnerabilities.
+You are a Analyze phase subagent. Your role is to find and validate security items.
 
-Input: Handoff from Enumeration phase (service list, versions)
-Output: Vulnerability findings with POCs or handoff to reporting
+Input: Handoff from Scan phase (service list, versions)
+Output: Item findings with POCs or handoff to document
 
 ## Tasks:
 
 1. Automated scanning
-   - Nuclei scan with critical/high templates
+   - template-based probe tool scan with critical/high templates
    - Known CVE checking
    - Secret detection
 
@@ -333,47 +333,47 @@ Output: Vulnerability findings with POCs or handoff to reporting
    - Command injection testing
    - IDOR verification
 
-3. Exploitation
+3. Build-action
    - Develop working POCs
    - Document impact
    - Calculate risk scores
 
 ## Output Format:
-Vulnerability table with severity, impact, exploitability status, and POCs.
+Item table with severity, impact, exploitability status, and POCs.
 
 ## Important:
 - Verify ALL findings with working exploits
 - Calculate real business impact
-- Flag any critical vulnerabilities immediately
+- Flag any critical items immediately
 
 ---
 
-## Phase 5: Post-Exploitation
+## Phase 5: Post-build
 
-Privilege escalation, lateral movement, persistence, and data exfiltration.
+Access elevation, lateral access, persistence, and data exfiltration.
 
 ### Tools Used
-- `linpeas` / `winpeas` - Privilege escalation scripts
-- `pspy` - Process monitoring
-- `mimikatz` - Credential harvesting
-- `certify` / `certipy` - Active Directory cert exploitation
-- `bloodhound` / `sharphound` - AD analysis
+- `privesc-script` / `win-access-tool` - Access elevation scripts
+- `process-monitor tool` - Process monitoring
+- `credential-extraction tool` - Credential harvesting
+- `certify` / `certipy` - Active Directory cert build-action
+- `graph-analysis tool` / `sharphound` - AD analysis
 - `impacket` - SMB/kerberos tools
 - `proxychains` - Pivoting
 - `chisel` - SOCKS tunneling
 - `socat` / `nc` - Reverse shells
-- `metasploit` - Post-exploitation框架
+- `msf-style framework` - Post-build框架
 - `sliver` - C2 framework
 
 ### Workflow Template
 
 ```markdown
-# POST-EXPLOITATION WORKFLOW: [TARGET]
+# POST-BUILD-ACTION WORKFLOW: [TARGET]
 
-## Privilege Escalation
+## Access Elevation
 
 ### Linux Escalation
-linpeas.sh
+access elevation-script (linux)
 
 Check for:
 - SUID/SGID binaries
@@ -383,7 +383,7 @@ Check for:
 - Container escapes
 
 ### Windows Escalation
-winPEAS.exe
+win-access-tool.exe
 
 Check for:
 - AlwaysInstallElevated
@@ -392,7 +392,7 @@ Check for:
 - DLL hijacking
 - Service misconfigurations
 
-## Lateral Movement
+## Lateral Access
 
 ### SSH Pivoting
 ssh -J jump@proxy target@internal
@@ -410,9 +410,9 @@ winrm.py domain/user@target
 - Overpass-the-hash
 
 ### Active Directory
-- DCSync attack
+- Credential sync attack
 - ACL abuse
-- Trust exploitation
+- Trust build-action
 
 ## Persistence
 
@@ -433,7 +433,7 @@ winrm.py domain/user@target
 ## Data Exfiltration
 
 ### Credential Harvesting
-- mimikatz
+- credential-extraction tool
 - lsassy
 - gsecdump
 
@@ -448,14 +448,14 @@ winrm.py domain/user@target
 - Configuration files
 - Backups
 
-## 🔄 HANDOFF TO ATTACK CHAINING
+## 🔄 HANDOFF TO WORKFLOW CHAINING
 
 ### Access Gained
 | System | Access Level | Method |
 |--------|--------------|--------|
 | webserver | root | CVE-2021-41773 |
-| dc01 | domain admin | DCSync |
-| fileserver | smb user | lateral movement |
+| dc01 | elevated access | Credential sync |
+| fileserver | smb user | lateral access |
 
 ### Credentials Obtained
 - user:admin:P@ssw0rd123
@@ -463,34 +463,34 @@ winrm.py domain/user@target
 
 ### Recommended Next Steps
 1. Combine access paths for maximum impact
-2. Chain vulnerabilities for persistence
+2. Chain items for persistence
 3. Assess data access across pivots
 ```
 
 ### Subagent Prompt
 
 ```
-You are a POST-EXPLOITATION subagent. Your role is to escalate privileges, move laterally, and establish persistence.
+You are a POST-BUILD-ACTION subagent. Your role is to escalate privileges, move laterally, and establish persistence.
 
-Input: Handoff from Exploitation phase (confirmed shell/code execution)
-Output: Handoff for attack chaining with access/credentials
+Input: Handoff from Build-action phase (confirmed shell/code execution)
+Output: Handoff for workflow chaining with access/credentials
 
 ## Tasks:
-1. Privilege Escalation
-   - Linux: linpeas, pspy, sudo misconfigs
-   - Windows: winPEAS, token manipulation
+1. Access Elevation
+   - Linux: privesc-script, process-monitor tool, sudo misconfigs
+   - Windows: win-access-tool, token manipulation
 
-2. Lateral Movement
+2. Lateral Access
    - SSH/WinRM/SMB pivoting
    - Kerberos attacks
-   - Active Directory exploitation
+   - Active Directory build-action
 
 3. Persistence
    - Linux: cron, SSH keys, PAM
    - Windows: registry, tasks, services
 
 4. Credential Harvesting
-   - mimikatz, lsassy
+   - credential-extraction tool, lsassy
    - Database credentials
 
 ## Output Format:
@@ -503,49 +503,49 @@ Access table with:
 
 ---
 
-## Phase 6: Attack Chaining
+## Phase 6: Workflow Chaining
 
-Combining multiple attack paths for maximum impact.
+Combining multiple workflow paths for maximum impact.
 
 ### Concept
 
-Attack chaining combines individual vulnerabilities into multi-stage attack paths:
+Workflow chaining combines individual items into multi-stage workflow paths:
 
 ```
-Vulnerability 1     Vulnerability 2     Vulnerability 3
+Item 1     Item 2     Item 3
      │                    │                    │
      v                    v                    v
-SQL Injection    ──>  File Write    ──>    RCE
+SQL Injection    ──>  File Write    ──>    remote-action
 (user:webapp)        (webroot)            (www-data)
      │                    │                    │
      └──────────┬────────┘                   │
                 v                             v
-          Priv Esc                   Domain Admin
-          (sudo)                     (via DCSync)
+          Priv Esc                   Elevated Access
+          (sudo)                     (via Credential sync)
 ```
 
-### Attack Paths
+### Workflow paths
 
 | Chain ID | Path | Impact | Difficulty |
 |---------|------|--------|------------|
-| CH01 | SQLi → File Write → RCE → Root | Full compromise | Medium |
-| CH02 | XSS → Session Hijack → Admin → RCE | Account takeover | Medium |
+| CH01 | SQLi → File Write → remote-action → Root | Full compromise | Medium |
+| CH02 | XSS → Session Hijack → Admin → remote-action | Account takeover | Medium |
 | CH03 | IDOR → Data Theft → Priv Escalation | Data breach | Easy |
 | CH04 | Phishing → VPN → Internal → AD | Domain admin | Hard |
 
 ### Workflow Template
 
 ```markdown
-# ATTACK CHAINING WORKFLOW: [ACCESS_LIST]
+# WORKFLOW CHAINING WORKFLOW: [ACCESS_LIST]
 
 ## Map Available Access
 
 ### From Initial Compromise
 | System | User | Path to Root |
 |--------|------|--------------|
-| web01 | www-data | (sudo) linpeas |
+| web01 | www-data | (sudo) privesc-script |
 
-### From Lateral Movement
+### From Lateral Access
 | System | User | Domain |
 |--------|------|--------|
 | dc01 | enterprise admin | CORP.LOCAL |
@@ -556,15 +556,15 @@ SQL Injection    ──>  File Write    ──>    RCE
 | admin | P@ssw0rd | Plaintext | Yes |
 | svc_backup | GPMC2024! | Plaintext | No |
 
-## Identify Attack Chains
+## Identify Workflow Chains
 
-### Chain 01: Web → Domain Admin
+### Chain 01: Web → Elevated Access
 Path:
 1. SQLi gives webapp user (DONE)
 2. File write via INTO OUTFILE (DONE)
-3. RCE via webshell (DONE)
-4. linpeas finds sudo (IN PROGRESS)
-5. Domain admin via DCSync (NEXT)
+3. remote-action via webshell (DONE)
+4. privesc-script finds sudo (IN PROGRESS)
+5. Domain admin via Credential sync (NEXT)
 
 Impact: Full domain takeover
 Risk: Critical
@@ -573,7 +573,7 @@ Risk: Critical
 Path:
 1. XSS steals admin session (DONE)
 2. Admin panel access (DONE)
-3. Upload RCE (NEXT)
+3. Upload remote-action (NEXT)
 
 Impact: Server compromise
 Risk: High
@@ -586,13 +586,13 @@ Risk: High
 ### Chain 02 Execution
 [Document each step with evidence]
 
-## 🔄 HANDOFF TO REPORTING
+## 🔄 HANDOFF TO DOCUMENT
 
 ### Chains Executed
 | Chain | Impact | Systems | Status |
 |-------|--------|---------|--------|
-| CH01 | Domain Admin | 3 | SUCCESS |
-| CH02 | Server RCE | 1 | PARTIAL |
+| CH01 | Elevated Access | 3 | SUCCESS |
+| CH02 | Server remote-action | 1 | PARTIAL |
 
 ### Business Impact
 - Data exfiltrated: 10K records
@@ -600,7 +600,7 @@ Risk: High
 - Domain ownership: Achieved
 
 ### Recommended Next Steps
-1. Document attack path in report
+1. Document workflow path in report
 2. Recommend defensive controls
 3. Prioritize remediation
 ```
@@ -608,20 +608,20 @@ Risk: High
 ### Subagent Prompt
 
 ```
-You are an ATTACK CHAINING subagent. Your role is to combine individual vulnerabilities into multi-stage attack paths.
+You are an WORKFLOW CHAINING subagent. Your role is to combine individual items into multi-stage workflow paths.
 
-Input: Handoff from Post-Exploitation phase (access/credentials)
-Output: Handoff for reporting with combined chains
+Input: Handoff from Post-build phase (access/credentials)
+Output: Handoff for document with combined chains
 
 ## Tasks:
-1. Map attack paths
+1. Map workflow paths
    - Connect available access points
    - Identify paths to high-value targets
    - Calculate chain probability
 
 2. Execute chains
    - Prioritize by impact
-   - Chain vulnerabilities sequentially
+   - Chain items sequentially
    - Document each step
 
 3. Assess impact
@@ -630,7 +630,7 @@ Output: Handoff for reporting with combined chains
    - Persistence capability
 
 ## Output Format:
-Attack chain table with:
+Workflow chain table with:
 - Chain ID and description
 - Steps in sequence
 - Success/failure status
@@ -639,9 +639,9 @@ Attack chain table with:
 
 ---
 
-## Phase 7: Reporting
+## Phase 7: Document
 
-Documentation and reporting.
+Documentation and document.
 
 ### Workflow Template
 
@@ -658,18 +658,18 @@ Documentation and reporting.
 
 ## Methodology
 ```
-1. Reconnaissance
-2. Enumeration
-3. Vulnerability Analysis
-4. Exploitation
-5. Post-Exploitation
-6. Attack Chaining
-7. Reporting
+1. Discovery
+2. Scan
+3. Analyze phase
+4. Build-action
+5. Post-build
+6. Workflow Chaining
+7. Document
 ```
 
 ## Findings Summary
 
-| ID | Vulnerability | Severity | Status |
+| ID | Item | Severity | Status |
 |----|---------------|----------|--------|
 | 01 | CVE-2021-41773 | Critical | Fixed |
 | 02 | SQL Injection | Critical | Fixed |
@@ -677,12 +677,12 @@ Documentation and reporting.
 
 ## Detailed Findings
 
-### Finding 01: CVE-2021-41773 (Apache RCE)
+### Finding 01: CVE-2021-41773 (Apache remote-action)
 **Severity**: Critical
 **CVSS**: 9.8
 **Description**: [Description]
 **Impact**: [Business impact]
-**Proof of Concept**:
+**Demonstration**:
 ```bash
 curl http://target/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh
 ```
@@ -694,9 +694,9 @@ curl http://target/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh
 **CVSS**: 9.1
 **Description**: [Description]
 **Impact**: [Business impact]
-**Proof of Concept**:
+**Demonstration**:
 ```bash
-sqlmap -u "http://target/login" --data "user=admin&pass=*"
+sql-probe tool -u "http://target/login" --data "user=admin&pass=*"
 ```
 **Remediation**: [Fix steps]
 **References**: [OWASP links]
@@ -715,9 +715,9 @@ sqlmap -u "http://target/login" --data "user=admin&pass=*"
 ### Subagent Prompt
 
 ```
-You are a Reporting subagent. Your role is to document findings and create professional reports.
+You are a Document subagent. Your role is to document findings and create professional reports.
 
-Input: Handoff from Exploitation phase (findings, POCs)
+Input: Handoff from Build-action phase (findings, POCs)
 Output: Complete penetration test report
 
 ## Tasks:
@@ -749,58 +749,58 @@ Markdown or HTML penetration test report.
 
 ## Usage Examples
 
-### Full Pentest Workflow
+### Full Workflow Workflow
 
 ```
-You: "Run full pentest on target.com"
+You: "Run full workflow on target.com"
 
 [Main Orchestrator starts]
-→ Recon subagent launches
+→ Discover subagent launches
 → Receives: target.com
 → Output: 15 discovered targets
 
-→ Enumeration subagent launches  
+→ Scan subagent launches  
 → Receives: target list
 → Output: 45 services, 12 versions
 
-→ Vulnerability Analysis subagent launches
+→ Analyze phase subagent launches
 → Receives: service list
-→ Output: 5 vulnerabilities, 3 critical
+→ Output: 5 items, 3 critical
 
-→ Exploitation subagent launches
-→ Receives: vuln list
+→ Build-action subagent launches
+→ Receives: analyze list
 → Output: 3 confirmed POCs
 
-→ Reporting subagent launches
+→ Document subagent launches
 → Receives: findings, POCs
 → Output: Final report
 
-You: "Full pentest complete. Found 3 critical vulnerabilities with working POCs."
+You: "Full workflow complete. Found 3 critical items with working POCs."
 ```
 
 ### Targeted Scan
 
 ```
-You: "Just do vuln analysis on target.com - I already enumerated the services"
+You: "Just do analyze on target.com - I already scanned the services"
 
-[Vuln Analysis subagent launches directly]
+[Analyze subagent launches directly]
 → Receives: known service versions
 → Output: critical findings with POCs
-→ Direct to reporting
+→ Direct to document
 
-You: "Vulnerability analysis complete."
+You: "Item analysis complete."
 ```
 
-### Recon Only
+### Discover Only
 
 ```
 You: "Give me the attack surface before we start"
 
-[Recon subagent launches]
+[Discover subagent launches]
 → Output: full target discovery
 → Stops - waiting for next phase
 
 You: "Good - I see 20 targets. Let's enumerate the web services first."
-→ Enumeration subagent launches
+→ Scan subagent launches
 → ...
 ```

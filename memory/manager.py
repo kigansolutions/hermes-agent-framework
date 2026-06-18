@@ -1,6 +1,12 @@
 """
-PromptOrchestrator Memory Manager
-Handles persistent memory across agent sessions
+prompt-orchestrator — Memory Manager
+=====================================
+Persistent memory across agent sessions.
+
+Layers:
+- Working Memory: current session context
+- Episodic Memory: past interactions and items
+- Semantic Memory: facts about the orchestrator, subjects, methodology
 """
 
 import sqlite3
@@ -14,10 +20,10 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', './data/aios.db')
 
 class MemoryManager:
     """
-    Multi-layer memory system for PromptOrchestrator:
+    Multi-layer memory system for prompt-orchestrator:
     - Working Memory: Current session context
-    - Episodic Memory: Past interactions and findings
-    - Semantic Memory: Facts about the orchestrator, targets, methodology
+    - Episodic Memory: Past interactions and items
+    - Semantic Memory: Facts about the orchestrator, subjects, methodology
     """
     
     def __init__(self, db_path: str = DATABASE_PATH):
@@ -46,7 +52,7 @@ class MemoryManager:
                 user_id TEXT NOT NULL,
                 target TEXT,
                 scope TEXT,
-                phase TEXT DEFAULT 'recon',
+                phase TEXT DEFAULT 'discover',
                 current_task TEXT,
                 findings_summary TEXT,
                 last_active TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -135,7 +141,7 @@ class MemoryManager:
         
         cursor.execute('''
             INSERT INTO engagement_state (user_id, target, scope, phase, last_active)
-            VALUES (?, ?, ?, 'recon', ?)
+            VALUES (?, ?, ?, 'discover', ?)
         ''', (user_id, target, scope, datetime.now().isoformat()))
         
         conn.commit()

@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 """
-PromptOrchestrator Knowledge Base - Persistent memory across sessions
-Stores target history, CVE cache, successful techniques, and learned patterns
+prompt-orchestrator — Knowledge Store
+======================================
+SQLite-backed persistent memory for workflow state, reference
+data, and learned patterns across sessions.
+
+Tables:
+- targets: subjects being worked on
+- findings: observations, items, results
+- cves: cached reference data
+- tools: registered tool definitions
+- pentest_state: per-subject state for resume (legacy name, retained)
+- notes: free-form context
 """
 
 import json
@@ -539,7 +549,7 @@ def main():
     kb = KnowledgeBase()
     
     if len(sys.argv) < 2:
-        print("PromptOrchestrator Knowledge Base")
+        print("prompt-orchestrator Knowledge Base")
         print("Usage: python -m knowledge <command> [args]")
         return
     

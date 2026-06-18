@@ -1,5 +1,5 @@
 """
-PromptOrchestrator Browser Harness Integration
+prompt-orchestrator — Browser Harness Integration
 Browser automation with anti-bot evasion for web testing
 """
 

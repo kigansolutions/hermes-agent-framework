@@ -1,6 +1,6 @@
 """
-PromptOrchestrator Caido Integration
-API wrapper for Caido - Web Security Auditing Toolkit
+prompt-orchestrator — Caido Integration
+API wrapper for Caido web auditing toolkit
 """
 
 import os
@@ -201,7 +201,7 @@ class CaidoClient:
 
 class CaidoIntegration:
     """
-    High-level integration for PromptOrchestrator.
+    High-level integration for prompt-orchestrator.
     Provides tool-friendly interface.
     """
     

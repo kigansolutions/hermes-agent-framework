@@ -1,8 +1,10 @@
-# Ultimate PromptOrchestrator Specification
+# Planner Architecture Specification
 
-The complete specification for building the ultimate penetration testing AI assistant.
+The complete specification for building a prompt-driven multi-agent
+orchestration system with phase-based workflows, persistent memory,
+and reference lookup.
 
-## Current Limitations vs Ultimate Version
+## Current Limitations vs Target Version
 
 | Current Limit | Ultimate Capability |
 |--------------|---------------------|
@@ -15,7 +17,7 @@ The complete specification for building the ultimate penetration testing AI assi
 | Static knowledge | Real-time CVE/ExploitDB updates |
 | Single assessment context | Multi-target parallel评估 |
 | Manual phase switching | Automated chain execution |
-| No post-exploitation | Full post-ex chain |
+| No post-build | Full post-ex chain |
 
 ---
 
@@ -78,8 +80,8 @@ The complete specification for building the ultimate penetration testing AI assi
 │  ┌─────────────────────────────────┐   │
 │  │      Target History               │   │
 │  │  - Previous findings           │   │
-│  │  - Patched vulnerabilities     │   │
-│  │  - Attack paths used         │   │
+│  │  - Patched items     │   │
+│  │  - Workflow paths used         │   │
 │  └─────────────────────────────────┘   │
 │                                         │
 │  ┌─────────────────────────────────┐   │
@@ -100,7 +102,7 @@ The complete specification for building the ultimate penetration testing AI assi
 ```
 
 **Features**:
-- Remembers previous pentests on same target
+- Remembers previous workflows on same target
 - Learns successful techniques
 - Real-time CVE/ExploitDB integration
 - Searchable knowledge graph
@@ -148,12 +150,12 @@ Would you like to create it? (y/n)     │
 │       PARALLEL EXECUTION ENGINE         │
 ├─────────────────────────────────────────┤
                                          │
-You: "Run nmap, nuclei, gobuster on target"│
+You: "Run nmap, template-based probe tool, gobuster on target"│
                                          │
 Bot: Running 3 parallel tasks...          │
                                          │
     ┌──────┐  ┌──────┐  ┌──────┐       │
-    │nmap  │  │nuclei│  │gobs  │       │
+    │nmap  │  │template-based probe tool│  │gobs  │       │
     │scan  │  │scan │  │uster │       │
     └──┬───┘  └──┬───┘  └──┬───┘       │
        │         │         │              │
@@ -169,7 +171,7 @@ Bot: Running 3 parallel tasks...          │
                                          │
 Complete: All 3 scans finished         │
 - Found: 12 open ports                │
-- Critical: 3 vulnerabilities          │
+- Critical: 3 items          │
 - Directories: 8 found                 │
                                          │
 └─────────────────────────────────────────┘
@@ -179,7 +181,7 @@ Complete: All 3 scans finished         │
 - Run unlimited parallel tasks
 - Automatic result correlation
 - Progress tracking
-- Resource management
+- Resouremote-action management
 
 ### 5. Write-Capable Delegation
 
@@ -236,7 +238,7 @@ LEVEL 1: Ask Everything (default)       │
                                          │
 LEVEL 2: Ask for Risks                 │
   - Confirm high-risk actions          │
-  - Auto low-risk enumeration       │
+  - Auto low-risk scan       │
                                          │
 LEVEL 3: Auto with Notify              │
   - Run full phases automatically   │
@@ -244,7 +246,7 @@ LEVEL 3: Auto with Notify              │
   - Ask for next phase             │
                                          │
 LEVEL 4: Full Autonomy               │
-  - Execute complete pentests      │
+  - Execute complete workflows      │
   - Report at end                │
   - Only ask on scope change    │
                                          │
@@ -275,7 +277,7 @@ LEVEL 3? (y/n)                       │
 Integration:                           │
 - NVD API (real-time)                  │
 - Exploit-DB (daily)                   │
-- Vulnerability-Lab                  │
+- Item-Lab                  │
 - PacketStorm                       │
 - MITRE CVE feed                    │
                                          │
@@ -288,7 +290,7 @@ Bot: CVE-2024-21762                 │
     - Published: 2024-01-12         │
     - Exploits: 3 verified          │
     - POCs: Available               │
-    - Detection: nuclei template     │
+    - Detection: template-based probe tool template     │
                                          │
 Would you like me to scan for this?   │
                                          │
@@ -311,7 +313,7 @@ Would you like me to scan for this?   │
 │    MULTI-TARGET ASSESSMENT              │
 ├─────────────────────────────────────────┤
                                          │
-You: "Run vuln scan on target1,        │
+You: "Run analyze on target1,        │
      target2, target3 in parallel"   │
                                          │
 Bot: Starting 3 parallel assessments│
@@ -336,21 +338,21 @@ Results saved to: /tmp/assessments   │
 - Run unlimited parallel assessments
 - Separate context per target
 - Aggregated results
-- Resource management
+- Resouremote-action management
 
-### 9. Automated Attack Chaining
+### 9. Automated Workflow Chaining
 
 **Problem**: Manual multi-stage attacks
 **Solution**: Automated chain execution
 
 ```
 ┌─────────────────────────────────────────┐
-│    AUTOMATED ATTACK CHAINING             │
+│    AUTOMATED WORKFLOW CHAINING             │
 ├─────────────────────────────────────────┤
                                          │
 Detection:                            │
-- Auto-detects available attack paths │
-- Maps vulnerability relationships  │
+- Auto-detects available workflow paths │
+- Maps item relationships  │
 - Calculates chain probability    │
                                          │
 Execution:                           │
@@ -359,47 +361,47 @@ Execution:                           │
 - Documents each step              │
                                          │
 Example:                            │
-You: "Chain the vulnerabilities"       │
+You: "Chain the items"       │
                                          │
-Bot: Detected attack chains:       │
+Bot: Detected workflow chains:       │
                                          │
-CH01: SQLi → File Write → RCE     │
+CH01: SQLi → File Write → remote-action     │
   ├─ Step 1: SQLi (user:webapp)  │
   ├─ Step 2: INTO OUTFILE        │
   ├─ Step 3: Webshell           │
-  └─ Step 4: linpeas → sudo     │
+  └─ Step 4: privesc-script → sudo     │
                                          │
 CH02: XSS → Session → Admin     │
   ├─ Step 1: XSS (stored)      │
   ├─ Step 2: Cookie steal      │
   ├─ Step 3: Admin access    │
-  └─ Step 4: Upload RCE      │
+  └─ Step 4: Upload remote-action      │
                                          │
 Executing CH01...                  │
-[Chain complete: Domain Admin]     │
+[Chain complete: Elevated Access]     │
                                          │
 └─────────────────────────────────────────┘
 ```
 
 **Features**:
-- Auto-detect attack paths
+- Auto-detect workflow paths
 - Calculate probability
 - Auto-execute within bounds
 - Document chain results
 
-### 10. Post-Exploitation Framework
+### 10. Post-build Framework
 
 **Problem**: Manual post-ex
 **Solution**: Integrated post-ex automation
 
 ```
 ┌─────────────────────────────────────────┐
-│    AUTOMATED POST-EXPLOITATION           │
+│    AUTOMATED POST-BUILD-ACTION           │
 ├─────────────────────────────────────────┤
                                          │
 Detection:                            │
-- Auto-detect privesc vectors      │
-- Check lateral movement options  │
+- Auto-detect access elevation vectors      │
+- Check lateral access options  │
 - Identify persistence points   │
                                          │
 Execution:                           │
@@ -412,23 +414,23 @@ You: "Post-ex on the shell"       │
                                          │
 Bot: Analyzing access...          │
                                          │
-Detected Privesc:                 │
-- sudo (linpeas: yes)             │
+Detected Access-elevation:                 │
+- sudo (privesc-script: yes)             │
 - cron (writable)               │
                                          │
 Attempting: sudo escalation     │
   ├─ Check sudo permissions    │
-  ├─ Find vulnerable binary     │
-  └─ Privesc SUCCESS: root     │
+  ├─ Find misconfigured binary     │
+  └─ Access-elevation SUCCESS: root     │
                                          │
-Detected Lateral Movement:     │
+Detected Lateral Access:     │
 - Psexec available              │
 - WinRM available               │
                                          │
 Attempting: WinRM pivot to dc01 │
   ├─ Harvested credentials     │
   ├─ WinRM to dc01             │
-  └─ Domain Admin: YES         │
+  └─ Elevated Access: YES         │
                                          │
 Persistence:                     │
 - Added scheduled task         │
@@ -440,8 +442,8 @@ Post-ex complete: root + domain  │
 ```
 
 **Features**:
-- Auto privilege escalation
-- Auto lateral movement
+- Auto access elevation
+- Auto lateral access
 - Auto persistence
 - Credential harvesting
 
@@ -458,7 +460,7 @@ Post-ex complete: root + domain  │
 Setup:                                │
 /monitor create target.com            │
   schedule: daily                     │
-  scan: vuln                         │
+  scan: analyze                         │
   alert: critical                   │
                                          │
 Active Monitors:                    │
@@ -469,7 +471,7 @@ Active Monitors:                    │
 Alert:                              │
 <notification>                     │
 Target: target.com                   │
-New vulnerability: CVE-2024-21762    │
+New item: CVE-2024-21762    │
 Severity: Critical                   │
 Impact: Remote Code Execution       │
                                         │
@@ -535,52 +537,52 @@ index=web (cgi-bin OR ..)         │
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              ULTIMATE SECAIOS WORKFLOW                   │
+│            PROMPT-ORCHESTRATOR WORKFLOW                  │
 ├─────────────────────────────────────────────────────────┤
                                                          │
-You: "Full pentest on target.com"                       │
+You: "Full workflow on target.com"                       │
                                                          │
 [LEVEL 4: FULL AUTONOMY]                             │
                                                          │
-=== PHASE 1: RECON (Parallel) ===                    │
+=== PHASE 1: DISCOVER (Parallel) ===                    │
   Running: passive-dns, active-dns, email-harvest  │
                                                          │
   Results: 45 targets discovered                   │
   Key: admin.target.com, api.target.com            │
                                                          │
-=== PHASE 2: ENUMERATION (Parallel) ===              │
+=== PHASE 2: SCAN (Parallel) ===              │
   Running: nmap, http-probe, ssl-scan, tech-id    │
                                                          │
   Results: 45 services, 12 web apps              │
   Versions: Apache 2.4.49, nginx 1.22           │
                                                          │
-=== PHASE 3: VULN ANALYSIS (Parallel) ===          │
-  Running: nuclei, sqlmap, xss-scanner, secret-scan│
+=== PHASE 3: ANALYZE (Parallel) ===          │
+  Running: template-based probe tool, sql-probe tool, xss-scanner, secret-scan│
                                                          │
   Results: 5 critical, 8 high, 12 medium        │
   Key: CVE-2021-41773, SQLi, Auth Bypass         │
                                                          │
-=== PHASE 4: EXPLOITATION ===                        │
+=== PHASE 4: BUILD-ACTION ===                        │
   Executing: CVE-2021-41773                        │
                                                          │
   Result: Shell secured ✓                        │
                                                          │
-=== PHASE 5: POST-EXPLOITATION ===                  │
-  Running: linpeas, mimikatz, bloodhound          │
+=== PHASE 5: POST-BUILD-ACTION ===                  │
+  Running: privesc-script, credential-extraction tool, graph-analysis tool          │
                                                          │
-  Privesc: root via sudo                           │
+  Access-elevation: root via sudo                           │
   Lateral: DC via WinRM                           │
   Persistence: Scheduled task + SSH key          │
   Creds: 3 accounts, 1 service                  │
                                                          │
-=== PHASE 6: ATTACK CHAINING ===                    │
-  Mapping: CH01 (Web→Root→Domain Admin)          │
+=== PHASE 6: WORKFLOW CHAINING ===                    │
+  Mapping: CH01 (Web→Root→Elevated Access)          │
   Executing: CH01                                 │
                                                          │
   Result: DOMAIN ADMIN ✓                          │
                                                          │
-=== PHASE 7: REPORTING ===                         │
-  Generating: Full pentest report                │
+=== PHASE 7: DOCUMENT ===                         │
+  Generating: Full workflow report                │
                                                          │
   ┌────────────────────────────────────────┐   │
   │ EXECUTIVE SUMMARY                        │   │
@@ -590,9 +592,9 @@ You: "Full pentest on target.com"                       │
   │ Domain: COMPLETE                      │   │
   └────────────────────────────────────────┘   │
                                                          │
-DONE: Full pentest complete in 45 minutes        │
+DONE: Full workflow complete in 45 minutes        │
                                                          │
-Report: /tmp/pentest-target.com-2024.md           │
+Report: /tmp/workflow-target.com-2024.md           │
                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -613,8 +615,8 @@ Report: /tmp/pentest-target.com-2024.md           │
 
 ### Phase 3: Automation
 7. Autonomous operation
-8. Automated attack chaining
-9. Automated post-exploitation
+8. Automated workflow chaining
+9. Automated post-build
 
 ### Phase 4: Continuous
 10. Continuous monitoring
@@ -670,17 +672,20 @@ prompt_orchestrator:
 
 ## Skills
 
-For the ultimate PromptOrchestrator, create these skills:
+For the prompt-orchestrator target, create these skills:
 
-1. **pentest-orchestrator** - Main workflow coordination
-2. **recon-specialist** - Discovery and enumeration
-3. **vuln-hunter** - Vulnerability analysis
-4. **exploit-developer** - POC development
-5. **post-exploiter** - Privilege escalation and pivoting
-6. **chain-builder** - Attack path optimization
-7. **report-writer** - Professional documentation
-8. **continuous-monitor** - Ongoing assessment
-9. **defensive-mapper** - Detection and mitigation
-10. **tool-crafter** - Custom tool creation
+1. **orchestrator** — Main phase coordination
+2. **discover** — Subject discovery and scanning
+3. **scan** — Service and surface scan
+4. **analyze** — Item analysis and reference lookup
+5. **build** — Action construction from analysis output
+6. **integrate** — Output integration and downstream hooks
+7. **orchestrate-phases** — Multi-stage workflow chaining
+8. **document** — Report and documentation generation
+9. **scheduler** — Recurring workflow execution
+10. **align-controls** — Detection and mitigation mapping
+11. **tool-builder** — Custom tool creation
+12. **browser** — Browser automation integration
+13. **llm-eval** — LLM-as-judge evaluation
 
 Each skill is a specialized subagent with specific tools and knowledge for that phase.

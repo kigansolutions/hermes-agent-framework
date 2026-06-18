@@ -1,4 +1,4 @@
-# Background Agents for PromptOrchestrator
+# Background Agents
 
 This guide covers adding background agents for parallel task execution.
 
@@ -22,14 +22,14 @@ mkdir -p ~/.opencode/plugin
 # (from https://github.com/kdcokenny/opencode-background-agents)
 ```
 
-## Usage in PromptOrchestrator
+## Usage in prompt-orchestrator
 
 Once installed, you have these tools available:
 
 ### delegate(prompt, agent)
 Launch a background task:
 ```
-delegate("Run nuclei vulnerability scan on target.com", "general")
+delegate("Run template-based probe tool item scan on target.com", "general")
 ```
 
 ### delegation_read(id)
@@ -50,7 +50,7 @@ delegation_list()
 You: "Run three things in background:
 1. nmap -sV target.com
 2. gobuster on http://target.com  
-3. nuclei on target.com"
+3. template-based probe tool on target.com"
 
 Bot: Starting 3 background tasks...
 
@@ -61,9 +61,9 @@ You: "While those run, tell me about OWASP API Security Top 10"
 Bot: <task-notification>
 - nmap: Found ports 22, 80, 443, 8080
 - gobuster: Found /admin, /api, /login
-- nuclei: 2 critical findings
+- template-based probe tool: 2 critical findings
 
-You: "Give me details on the critical nuclei findings"
+You: "Give me details on the critical template-based probe tool findings"
 ```
 
 ## ⚠️ Read-Only Limitation
@@ -96,12 +96,12 @@ The `task` tool:
 
 | Task Type | Use |
 |-----------|-----|
-| **Read-only scans** (nmap, nuclei, gobuster) | `delegate()` |
+| **Read-only scans** (nmap, template-based probe tool, gobuster) | `delegate()` |
 | **Scans that save results** | `task()` |
 | **Long-running research** | `delegate()` |
 | **File modifications** | Direct in main session |
 
-## Benefits for PromptOrchestrator
+## Benefits for prompt-orchestrator
 
 1. **Parallel scanning** - Run multiple tools simultaneously
 2. **Context efficient** - Heavy scanning doesn't fill context

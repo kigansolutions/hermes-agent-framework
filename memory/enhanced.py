@@ -1,6 +1,7 @@
 """
-PromptOrchestrator Enhanced Memory Manager
-Complete memory system with all Agent Zero-like features
+prompt-orchestrator — Enhanced Memory Manager
+==============================================
+Multi-layer memory with episodic, semantic, and vector-backed retrieval.
 """
 
 import os
@@ -42,7 +43,7 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', './data/aios.db')
 
 class EnhancedMemory:
     """
-    Complete memory system for PromptOrchestrator.
+    Complete memory system for prompt-orchestrator.
     Integrates:
     - SQLite structured memory
     - Vector memory (FAISS)
@@ -86,7 +87,7 @@ class EnhancedMemory:
                 user_id TEXT NOT NULL,
                 target TEXT,
                 scope TEXT,
-                phase TEXT DEFAULT 'recon',
+                phase TEXT DEFAULT 'discover',
                 current_task TEXT,
                 findings_summary TEXT,
                 last_active TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -203,7 +204,7 @@ class EnhancedMemory:
         
         cursor.execute('''
             INSERT INTO engagement_state (user_id, target, scope, phase, last_active)
-            VALUES (?, ?, ?, 'recon', ?)
+            VALUES (?, ?, ?, 'discover', ?)
         ''', (user_id, target, scope, datetime.now().isoformat()))
         
         conn.commit()
@@ -586,16 +587,15 @@ class EnhancedMemory:
                 context_parts.append("\n=== OWASP SMART CONTRACT TOP 10 (2026) ===")
                 context_parts.append(owasp_sc[:2500])
             
-            # Add available tools info
-            context_parts.append("\n=== AVAILABLE SECURITY TOOLS ===")
+            # Add available tool inventory
+            context_parts.append("\n=== AVAILABLE TOOLS ===")
             context_parts.append("""
-RECONNAISSANCE: nmap, masscan, subfinder, amass, gobuster, ffuf, dirb, whatweb
-VULNERABILITY SCANNING: nikto, nuclei, wapiti, skipfish, arachni, zap
-EXPLOITATION: sqlmap, xsstrike, dalfox, commix, hydra, john, hashcat
-API TESTING: httpx, httpie, postman
-BROWSER AUTOMATION: browser-harness (stealth Chrome)
-WEB PROXY: caido, burpsuite, owasp-zap
-SMART CONTRACT: slither, mythril, echidna, foundry
+DISCOVERY: whois, dig, host, curl, subfinder, amass, gobuster, ffuf
+ANALYSIS: nuclei, nikto, whatweb, httpx, slither, aderyn, foundry
+BUILD: sqlmap, xsstrike, dalfox, hydra, john, hashcat
+INTEGRATION: httpie, postman, curl
+AUTOMATION: browser-harness, headless-chrome
+PROXY: caido, burpsuite, owasp-zap
 """)
         
         # 10. Web search (optional - for latest CVE info)

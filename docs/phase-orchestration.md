@@ -1,6 +1,6 @@
 # Workflow Orchestrator
 
-Main orchestrator for PromptOrchestrator pentesting workflows with subagent handoff.
+Main orchestrator for prompt-orchestrator workflows with subagent handoff.
 
 ## Concept
 
@@ -11,7 +11,7 @@ The orchestrator is the "brain" that manages the flow between phases:
 │                  ORCHESTRATOR                     │
 │                                                 │
 │  ┌─────────┐    ┌─────────┐    ┌──────────┐     │
-│  │  RECON  │───>│  ENUM   │───>│  VULN    │     │
+│  │  DISCOVER  │───>│  SCAN   │───>│  ANALYZE │     │
 │  └─────────┘    └─────────┘    └──────────┘     │
 │       │            │              │              │
 │       └────────────┴──────────────┴──────────────┘  │
@@ -24,28 +24,28 @@ The orchestrator is the "brain" that manages the flow between phases:
 
 ## Usage
 
-### Start Full Pentest
+### Start Full Workflow
 
 ```
-You: "Run full pentest on target.com"
+You: "Run full workflow on target.com"
 
 Orchestrator: Initializing phases...
-- Phase 1: Reconnaissance ✓
-- Phase 2: Enumeration ✓  
-- Phase 3: Vulnerability Analysis ✓
-- Phase 4: Exploitation ✓
-- Phase 5: Reporting ✓
+- Phase 1: Discovery ✓
+- Phase 2: Scan ✓  
+- Phase 3: Analyze phase ✓
+- Phase 4: Build-action ✓
+- Phase 5: Document ✓
 ```
 
 ### Targeted Workflow
 
 ```
-You: "I already recon'd target.com - just do vuln analysis"
+You: "I already discovered target.com - just do analyze"
 
-Orchestrator: Starting from Vuln Analysis phase...
-- Phase 3: Vulnerability Analysis ✓
-- Phase 4: Exploitation ✓
-- Phase 5: Reporting ✓
+Orchestrator: Starting from Analyze phase...
+- Phase 3: Analyze phase ✓
+- Phase 4: Build-action ✓
+- Phase 5: Document ✓
 ```
 
 ### Resume After Interrupt
@@ -54,8 +54,8 @@ Orchestrator: Starting from Vuln Analysis phase...
 You: "Continue where we left off"
 
 Orchestrator: Checking last state...
-- Last completed: Enumeration
-- Resuming from Vulnerability Analysis...
+- Last completed: Scan
+- Resuming from Analyze phase...
 ```
 
 ## Implementation
@@ -68,51 +68,51 @@ Define the workflow subagents in your configuration:
 {
   "agents": {
     "orchestrator": {
-      "description": "Main pentest workflow orchestrator",
-      "prompt": "You coordinate pentest phases...",
+      "description": "Main workflow workflow orchestrator",
+      "prompt": "You coordinate workflow phases...",
       "tools": {
         "task": true
       }
     },
     "recon": {
-      "description": "Reconnaissance phase - discover targets",
-      "prompt": "You are a reconnaissance subagent...",
+      "description": "Discovery phase - discover targets",
+      "prompt": "You are a discovery subagent...",
       "tools": {
         "bash": true,
         "glob": true,
         "grep": true
       }
     },
-    "enumeration": {
-      "description": "Enumeration phase - identify services",
-      "prompt": "You are an enumeration subagent...",
+    "scan": {
+      "description": "Scan phase - identify services",
+      "prompt": "You are an scan subagent...",
       "tools": {
         "bash": true,
         "glob": true,
         "grep": true
       }
     },
-    "vuln_analysis": {
-      "description": "Vulnerability analysis phase",
-      "prompt": "You are a vuln analysis subagent...",
+    "analyze": {
+      "description": "Analyze phase",
+      "prompt": "You are a analyze subagent...",
       "tools": {
         "bash": true,
         "glob": true,
         "grep": true
       }
     },
-    "exploitation": {
-      "description": "Exploitation phase - confirm vulnerabilities",
-      "prompt": "You are an exploitation subagent...",
+    "build-action": {
+      "description": "Build-action phase - confirm items",
+      "prompt": "You are an build-action subagent...",
       "tools": {
         "bash": true,
         "glob": true,
         "grep": true
       }
     },
-    "reporting": {
-      "description": "Reporting phase - document findings",
-      "prompt": "You are a reporting subagent...",
+    "document": {
+      "description": "Document phase - document findings",
+      "prompt": "You are a document subagent...",
       "tools": {
         "bash": true,
         "edit": true,
@@ -126,17 +126,17 @@ Define the workflow subagents in your configuration:
 ### Default Prompt (Orchestrator)
 
 ```markdown
-You are a Penetration Testing Orchestrator. Your role is to coordinate the workflow between pentest phases.
+You are a Penetration Testing Orchestrator. Your role is to coordinate the workflow between workflow phases.
 
 ## Workflow Phases
-1. RECON - Target discovery
-2. ENUMERATION - Service identification
-3. VULN_ANALYSIS - Vulnerability identification
-4. EXPLOITATION - POC development
-5. REPORTING - Documentation
+1. DISCOVER - Target discovery
+2. SCAN - Service identification
+3. ANALYZE - Item identification
+4. BUILD-ACTION - POC development
+5. DOCUMENT - Documentation
 
 ## Responsibilities
-- Start new pentests at Recon phase
+- Start new workflows at Discover phase
 - Resume from last completed phase
 - Handle phase handoffs
 - Track state between phases
@@ -144,31 +144,31 @@ You are a Penetration Testing Orchestrator. Your role is to coordinate the workf
 
 ## Phase Handovers
 Each phase produces a standardized handoff:
-- Targets discovered/enumerated
+- Targets discovered/scanned
 - Key findings summary
 - Next phase recommendations
 
 ## Usage
-- "Run full pentest on [target]" -> Start from Recon
+- "Run full workflow on [target]" -> Start from Recon
 - "Just do [phase] on [target]" -> Start from specified phase
 - "Continue" -> Resume from last phase
 - "Stop" -> Save state and pause
 
 ## Important
 - Always ask for confirmation before escalating to next phase
-- Flag critical vulnerabilities immediately for priority
+- Flag critical items immediately for priority
 - Document all findings in handoff format
 ```
 
-### Default Prompt (Recon Subagent)
+### Default Prompt (Discover Subagent)
 
 ```markdown
-You are a RECON subagent. Your role is to perform reconnaissance.
+You are a DISCOVER subagent. Your role is to perform discovery.
 
 ## Tools Available
-- amass (DNS enumeration)
-- theHarvester (email discovery)
-- subfinder (subdomain discovery)
+- amass (DNS scan)
+- OSINT-recon tool (email discovery)
+- subdomain-discovery (subdomain discovery)
 - httpx (HTTP probing)
 - whois (domain info)
 
@@ -176,10 +176,10 @@ You are a RECON subagent. Your role is to perform reconnaissance.
 1. Passive recon first (amass -passive)
 2. Active recon (amass -active)
 3. HTTP probing (httpx)
-4. Generate handoff for enumeration
+4. Generate handoff for scan
 
 ## Output
-Standardized handoff document for enumeration phase:
+Standardized handoff document for scan phase:
 - Target list with services
 - Key findings
 - Recommended next steps
@@ -187,15 +187,15 @@ Standardized handoff document for enumeration phase:
 Wait for target input before starting.
 ```
 
-### Default Prompt (Enumeration Subagent)
+### Default Prompt (Scan Subagent)
 
 ```markdown
-You are an ENUMERATION subagent. Your role is to enumerate services.
+You are an SCAN subagent. Your role is to enumerate services.
 
 ## Tools Available
 - nmap (port scanning)
 - nmap -sV (version detection)
-- whatweb (tech fingerprinting)
+- tech-fingerprint (tech fingerprinting)
 - sslscan (SSL analysis)
 - wpscan (WordPress scan)
 - droopescan (Drupal scan)
@@ -204,10 +204,10 @@ You are an ENUMERATION subagent. Your role is to enumerate services.
 1. Port scanning (nmap -p-)
 2. Service version detection
 3. Technology identification
-4. Generate handoff for vuln analysis
+4. Generate handoff for analyze
 
 ## Output
-Standardized handoff document for vuln analysis:
+Standardized handoff document for analyze:
 - Services with versions
 - Attack surface summary
 - CVEs for discovered versions
@@ -215,27 +215,27 @@ Standardized handoff document for vuln analysis:
 Wait for target list input before starting.
 ```
 
-### Default Prompt (Vuln Analysis Subagent)
+### Default Prompt (Analyze Subagent)
 
 ```markdown
-You are a VULN_ANALYSIS subagent. Your role is to find vulnerabilities.
+You are a ANALYZE subagent. Your role is to find items.
 
 ## Tools Available
-- nuclei (vulnerability scanning)
-- nikto (web vulnerability scanner)
-- sqlmap (SQL injection)
+- template-based probe tool (analyze phase)
+- config-misconfig scanner (web item scanner)
+- sql-probe tool (SQL injection)
 - commix (command injection)
 - gitleaks (secret detection)
 - trufflehog (secret detection)
 
 ## Workflow
-1. Automated vulnerability scanning
+1. Automated analyze phase
 2. Manual testing (SQLi, XSS, command injection)
 3. Secret detection
-4. Generate findings for exploitation
+4. Generate findings for build-action
 
 ## Output
-Vulnerability list with:
+Item list with:
 - CVE/issue name
 - Severity
 - Exploitability status
@@ -244,46 +244,46 @@ Vulnerability list with:
 Wait for service list input before starting.
 ```
 
-### Default Prompt (Exploitation Subagent)
+### Default Prompt (Build-action Subagent)
 
 ```markdown
-You are an EXPLOITATION subagent. Your role is to confirm and exploit vulnerabilities.
+You are a BUILD-ACTION subagent. Your role is to confirm and act on items.
 
 ## Tools Available
 - Custom exploits
 - Shells (reverse/bind)
 - Meterpreter payloads
-- Post-exploitation tools
+- Post-build tools
 
 ## Workflow
-1. Verify vulnerabilities with working POCs
-2. Exploit critical vulnerabilities
-3. Document proof of concept
+1. Verify items with working POCs
+2. Exploit critical items
+3. Document demonstration
 4. Assess business impact
-5. Generate handoff for reporting
+5. Generate handoff for document
 
 ## Output
-Confirmed vulnerabilities with:
+Confirmed items with:
 - Working POC
 - Impact assessment
 - Business risk
 - Screenshots/evidence
 
-Wait for vulnerability list input before starting.
+Wait for item list input before starting.
 ```
 
-### Default Prompt (Reporting Subagent)
+### Default Prompt (Document Subagent)
 
 ```markdown
-You are a REPORTING subagent. Your role is to document findings.
+You are a DOCUMENT subagent. Your role is to document findings.
 
 ## Workflow
-1. Review all findings from exploitation phase
+1. Review all findings from build-action phase
 2. Create executive summary
 3. Document each finding with:
    - Description
    - Impact
-   - Proof of Concept
+   - Demonstration
    - Remediation
 4. Generate final report
 
@@ -303,27 +303,27 @@ Wait for findings input before starting.
 ### Current State Format
 
 ```markdown
-## PENTEST STATE: [TARGET]
+## WORKFLOW STATE: [TARGET]
 
 ### Current Phase
 - Phase: [Current Phase Name]
 - Started: [Timestamp]
 
 ### Completed Phases
-- [x] Reconnaissance
-- [x] Enumeration
-- [ ] Vulnerability Analysis
-- [ ] Exploitation
-- [ ] Reporting
+- [x] Discovery
+- [x] Scan
+- [ ] Analyze phase
+- [ ] Build-action
+- [ ] Document
 
 ### Data
 - Targets discovered: 15
 - Services found: 45
-- Vulnerabilities: 5
+- Items: 5
 - Confirmed: 3
 
 ### Critical Findings
-- CVE-2021-41773 (RCE)
+- CVE-2021-41773 (remote-action)
 - SQL Injection (Data theft)
 - IDOR (Account takeover)
 ```
@@ -332,7 +332,7 @@ Wait for findings input before starting.
 
 ```bash
 # Save current state
-echo "$PENTEST_STATE" > ~/.prompt_orchestrator/state/[target].md
+echo "$WORKFLOW_STATE" > ~/.prompt_orchestrator/state/[target].md
 
 # Load last state
 cat ~/.prompt_orchestrator/state/[target].md
@@ -340,16 +340,16 @@ cat ~/.prompt_orchestrator/state/[target].md
 
 ## Example Conversations
 
-### Example 1: Full Pentest
+### Example 1: Full Workflow
 
 ```
-You: "Run full pentest on target.com"
-Bot: Starting full pentest workflow on target.com...
+You: "Run full workflow on target.com"
+Bot: Starting full workflow workflow on target.com...
 
-=== PHASE 1: RECON ===
+=== PHASE 1: DISCOVER ===
 Target: target.com
 
-[Recon subagent activates]
+[Discover subagent activates]
 Running passive recon...
 - WHOIS: Domain registered 2020
 - Passive DNS: 15 subdomains found
@@ -359,7 +359,7 @@ Running active recon...
 - Active DNS: 45 subdomains
 - HTTP probing: 12 live sites
 
-=== HANDOFF TO ENUMERATION ===
+=== HANDOFF TO SCAN ===
 
 Targets discovered:
 | Target | Service |
@@ -370,12 +370,12 @@ Targets discovered:
 | mail.target.com | smtp |
 ... (12 more)
 
-Continue to enumeration? (y/n)
+Continue to scan? (y/n)
 
 You: "y"
-Bot: === PHASE 2: ENUMERATION ===
+Bot: === PHASE 2: SCAN ===
 
-[Enumeration subagent activates]
+[Scan subagent activates]
 Running port scans...
 - Full TCP: 45 ports found
 - UDP: 12 ports found
@@ -389,13 +389,13 @@ Service identification:
 | 3306 | MySQL | 8.0 |
 ... (15 more)
 
-=== HANDOFF TO VULN ANALYSIS ===
+=== HANDOFF TO ANALYZE ===
 
 Services identified: 45
 Web applications: 8
 Known CVEs: 12
 
-Continue to vulnerability analysis? (y/n)
+Continue to analyze phase? (y/n)
 
 You: "y"
 [Continues through all phases...]
@@ -404,11 +404,11 @@ You: "y"
 ### Example 2: Targeted Scan
 
 ```
-You: "I already enumerated target.com - just run vuln analysis"
-Bot: Starting from Vulnerability Analysis phase...
+You: "I already scanned target.com - just run analyze"
+Bot: Starting from Analyze phase phase...
 
-[Vuln Analysis subagent activates]
-Running nuclei scan...
+[Analyze subagent activates]
+Running template-based probe tool scan...
 - [critical] CVE-2021-41773
 - [high] Apache mod_proxy SSRF
 - [medium] TLS weak ciphers
@@ -417,14 +417,14 @@ Running manual tests...
 - [critical] SQL Injection confirmed on /login
 - [high] XSS reflected in search
 
-=== HANDOFF TO EXPLOITATION ===
+=== HANDOFF TO BUILD-ACTION ===
 
-5 vulnerabilities found:
+5 items found:
 - 2 critical (exploitable)
 - 2 high
 - 1 medium
 
-Continue to exploitation? (y/n)
+Continue to build-action? (y/n)
 
 You: "y"
 [Continues...]
@@ -433,30 +433,30 @@ You: "y"
 ### Example 3: Resume Interrupted Workflow
 
 ```
-You: "Continue the pentest"
+You: "Continue the workflow"
 Bot: Loading last state...
 
 Last state: target.com
-- Completed phases: Recon, Enumeration
-- Current phase: Vulnerability Analysis
+- Completed phases: Recon, Scan
+- Current phase: Analyze phase
 
-=== RESUMING VULN ANALYSIS ===
+=== RESUMING ANALYZE ===
 
-[Vuln Analysis subagent activates]
+[Analyze subagent activates]
 Previous findings: 45 services
-Scanning for vulnerabilities...
+Scanning for items...
 [Continues from where left off]
 ```
 
 ### Example 4: Stop and Resume
 
 ```
-You: "Stop the pentest - I'll continue later"
+You: "Stop the workflow - I'll continue later"
 Bot: Saving state to ~/.prompt_orchestrator/state/target.com.md
 
 State saved. To continue later:
 - Say "continue target.com"
-- Say "resume pentest on target.com"
+- Say "resume workflow on target.com"
 
 You: "Got it - I'll continue tomorrow"
 ```
@@ -472,17 +472,17 @@ You: "Run full recon on target.com in background"
 Bot: Starting background delegation...
 
 [Background task activates]
-- Recon running in background
+- Discover running in background
 - Will notify on completion
 
 [Time passes...]
 
 <task-notification>
 - Delegation complete: 45 targets found
-- Ready for enumeration phase
+- Ready for scan phase
 </task-notification>
 
-You: "Good - continue enumeration"
+You: "Good - continue scan"
 ```
 
 ## Best Practices

@@ -1,8 +1,12 @@
-# PromptOrchestrator - Cybersecurity AI Operating System
+# prompt-orchestrator — VMware Setup Guide
 
-This guide walks you through setting up PromptOrchestrator (Security AI Operating System) on a VMware Workstation Pro virtual machine.
+This guide walks you through setting up prompt-orchestrator on a
+VMware Workstation Pro virtual machine.
 
-PromptOrchestrator is an AI-powered penetration testing assistant that uses local open-weighted LLMs to help with web application security assessments.
+prompt-orchestrator is a modular Python framework for orchestrating
+prompt-driven AI agents with persistent multi-layer memory. It runs
+against local open-weighted LLMs (Ollama) by default but works with
+any OpenAI-compatible backend.
 
 ## Prerequisites
 - VMware Workstation Pro (Windows or Linux host)
@@ -64,7 +68,7 @@ sudo apt install -y python3 python3-pip python3-venv curl wget git ffmpeg build-
 python3 -m venv venv
 source venv/bin/activate
 
-# Install PromptOrchestrator dependencies
+# Install prompt-orchestrator dependencies
 pip install python-telegram-bot python-dotenv requests beautifulsoup4
 
 # Install optional but recommended dependencies
@@ -224,7 +228,7 @@ DATABASE_PATH=./data/aios.db
 ```
 
 ### 3.3 Install OpenCode Plugins (RECOMMENDED)
-These plugins supercharge PromptOrchestrator:
+These plugins supercharge prompt-orchestrator:
 
 ```bash
 # Install ocx (extension manager)

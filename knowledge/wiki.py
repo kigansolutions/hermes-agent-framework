@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-PromptOrchestrator LLM Wiki - Persistent knowledge base with incremental synthesis
-Implements Karpathy's LLM Wiki pattern for PromptOrchestrator
+prompt-orchestrator — Knowledge Wiki
+======================================
+Persistent markdown wiki with incremental synthesis — the
+Karpathy LLM-Wiki pattern adapted for runtime reference data.
 
-Key concepts:
-- Raw sources: Immutable source documents (scan results, CVE feeds, etc.)
-- Wiki: LLM-generated markdown files (summaries, entity pages, synthesis)
-- Schema: Configuration telling the LLM how to maintain the wiki
+Concepts:
+- Sources: immutable inputs (scan results, CVE feeds, findings)
+- Wiki: synthesized markdown pages (summaries, entity pages)
+- Schema: configuration telling the LLM how to maintain the wiki
 
-This enables the wiki to COMPOUND over time rather than re-deriving knowledge each session.
+The wiki compounds over time rather than re-deriving from scratch
+each session.
 """
 
 import json
@@ -65,7 +68,7 @@ class KnowledgeWiki:
             self.index_path.write_text("""# Wiki Index
 
 ## Overview
-This is the PromptOrchestrator knowledge wiki - a persistent, compounding knowledge base.
+This is the prompt-orchestrator knowledge wiki - a persistent, compounding reference base.
 
 ## Categories
 - [[Targets]] - Pentest targets and their history
@@ -92,7 +95,7 @@ Use `## [YYYY-MM-DD] <operation> | <description>` format for parseable entries.
         
         # Create schema if not exists
         if not self.schema_path.exists():
-            self.schema_path.write_text("""# PromptOrchestrator Wiki Schema
+            self.schema_path.write_text("""# prompt-orchestrator Wiki Schema
 
 ## Architecture
 - **raw/** - Immutable source documents (scan outputs, CVE feeds)
@@ -412,7 +415,7 @@ Target discovered: {datetime.now().strftime('%Y-%m-%d')}
         content = """# Wiki Index
 
 ## Overview
-PromptOrchestrator persistent knowledge base.
+prompt-orchestrator persistent knowledge base.
 
 ## Pages
 | Page | Title | Modified |
@@ -554,7 +557,7 @@ def main():
     wiki = KnowledgeWiki()
     
     if len(sys.argv) < 2:
-        print("PromptOrchestrator Wiki")
+        print("prompt-orchestrator Wiki")
         print("Usage: python -m wiki <command> [args]")
         return
     

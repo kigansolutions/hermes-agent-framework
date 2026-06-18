@@ -1,12 +1,12 @@
-# PromptOrchestrator - VMware Quick Start Guide
+# prompt-orchestrator — VMware Quick Start Guide
 
-Get PromptOrchestrator (Ultimate) running on VMware Workstation Pro in 15 minutes.
+Get prompt-orchestrator (Ultimate) running on VMware Workstation Pro in 15 minutes.
 
 ## Quick Overview
 
 1. Download Kali Linux VM image
 2. Import to VMware
-3. Copy PromptOrchestrator files
+3. Copy prompt-orchestrator files
 4. Install OpenCode plugins
 5. Run!
 
@@ -46,19 +46,19 @@ sudo apt update && sudo apt upgrade -y
 # Install core packages
 sudo apt install -y python3 python3-pip git curl wget
 
-# Install PromptOrchestrator Python dependencies
+# Install prompt-orchestrator Python dependencies
 pip3 install requests python-dotenv
 
 # Install workflow tools
 sudo apt install -y nmap nikto curl wget git
 
-# Clone PromptOrchestrator
+# Clone prompt-orchestrator
 cd /opt
 sudo mkdir aios
 sudo chown $USER:$USER aios
 cd aios
 
-# Copy your PromptOrchestrator files here
+# Copy your prompt-orchestrator files here
 # Or if using git:
 git clone <your-repo-url> .
 ```
@@ -70,7 +70,7 @@ git clone <your-repo-url> .
 ### Option A: Via Shared Folder (Easiest)
 1. VM Settings > Options > Shared Folders
 2. Enable "Always enabled"
-3. Point to folder with PromptOrchestrator files
+3. Point to folder with prompt-orchestrator files
 4. In VM: `cp /mnt/hgfs/SharedFolder/* /opt/aios/`
 
 ### Option B: Via SCP
@@ -79,7 +79,7 @@ git clone <your-repo-url> .
 # In VM: hostname -I
 
 # From host:
-scp -r PromptOrchestrator/* aios@<VM-IP>:/opt/aios/
+scp -r prompt-orchestrator/* aios@<VM-IP>:/opt/aios/
 ```
 
 ### Option C: Via USB
@@ -101,13 +101,13 @@ nano .env
 
 ## Step 6: Install OpenCode Plugins (RECOMMENDED)
 
-These plugins supercharge PromptOrchestrator with parallel execution, web scraping, and notifications:
+These plugins supercharge prompt-orchestrator with parallel execution, web scraping, and notifications:
 
 ```bash
 # Install ocx (extension manager)
 curl -fsSL https://ocx.sh | sh
 
-# Add key plugins for PromptOrchestrator
+# Add key plugins for prompt-orchestrator
 ocx add kdcokenny/opencode-background-agents
 ocx add firecrawl/opencode-firecrawl
 ocx add kdcokenny/opencode-notify
@@ -123,7 +123,7 @@ ocx add kdcokenny/opencode-notify
 
 ---
 
-## Step 7: Run PromptOrchestrator
+## Step 7: Run prompt-orchestrator
 
 ### Interactive Mode
 ```bash
@@ -214,18 +214,18 @@ sudo chown -R $USER:$USER /opt/aios
 
 ---
 
-## Usage in PromptOrchestrator
+## Usage in prompt-orchestrator
 
 After running `python3 __main__.py -i`:
 
 ```
-PromptOrchestrator> target target.com
-PromptOrchestrator> pentest
+prompt-orchestrator> target target.com
+prompt-orchestrator> pentest
 
 # Or use individual commands:
-PromptOrchestrator> recon target.com
-PromptOrchestrator> vuln target.com
-PromptOrchestrator> report target.com
+prompt-orchestrator> recon target.com
+prompt-orchestrator> vuln target.com
+prompt-orchestrator> report target.com
 ```
 
 ---

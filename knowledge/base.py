@@ -1,6 +1,13 @@
 """
-PromptOrchestrator Knowledge Base Manager
-Comprehensive security knowledge for workflow execution
+prompt-orchestrator — Knowledge Base
+=====================================
+Loads reference documents (markdown) from the knowledge/ directory
+and indexes them by category. Acts as a domain-aware lookup layer
+for any workflow that needs reference material at runtime.
+
+Categories include web, API, LLM, smart-contract, methodology, and
+payloads. The same machinery works for any other domain — drop
+markdown files into knowledge/<category>/ and they show up.
 """
 
 import os
@@ -9,8 +16,15 @@ from typing import List, Dict, Optional
 
 class KnowledgeBase:
     """
-    Comprehensive knowledge base for security testing.
-    Includes OWASP standards and more.
+    Reference document loader and indexer.
+
+    Loads markdown files from the knowledge/ directory and indexes
+    them by category. Documents are keyed by their relative path
+    (without the .md extension).
+
+    The base OWASP reference set covers web, API, LLM, and
+    smart-contract domains. Add your own categories by dropping
+    markdown files into `knowledge/<category>/`.
     """
     
     def __init__(self, kb_dir: str = "./knowledge"):
@@ -94,76 +108,75 @@ class KnowledgeBase:
         
         return results
     
-    # === Convenience Methods ===
-    
+    # === Reference Methods ===
+
     def get_owasp_web(self) -> str:
-        """Get OWASP Top 10 Web"""
-        return self.documents.get('owasp-web', 
+        """Get OWASP Top 10 for Web reference document."""
+        return self.documents.get('owasp-web',
                self.documents.get('owasp-top-10', 'Not found'))
-    
+
     def get_owasp_api(self) -> str:
-        """Get OWASP API Security Top 10"""
+        """Get OWASP API Security Top 10 reference document."""
         return self.documents.get('owasp-api', 'Not found')
-    
+
     def get_owasp_llm(self) -> str:
-        """Get OWASP Top 10 for LLM"""
+        """Get OWASP Top 10 for LLM reference document."""
         return self.documents.get('owasp-llm', 'Not found')
-    
+
     def get_owasp_smart_contract(self) -> str:
-        """Get OWASP Smart Contract Top 10"""
+        """Get OWASP Smart Contract Top 10 reference document."""
         return self.documents.get('owasp-smart-contract', 'Not found')
-    
+
     def get_owasp_all(self) -> str:
-        """Get all OWASP documents combined"""
+        """Get all OWASP reference documents concatenated."""
         parts = []
-        
+
         web = self.get_owasp_web()
         if web and 'not found' not in web.lower():
             parts.append(web)
-        
+
         api = self.get_owasp_api()
         if api and 'not found' not in api.lower():
             parts.append(api)
-        
+
         llm = self.get_owasp_llm()
         if llm and 'not found' not in llm.lower():
             parts.append(llm)
-        
+
         sc = self.get_owasp_smart_contract()
         if sc and 'not found' not in sc.lower():
             parts.append(sc)
-        
+
         return '\n\n---\n\n'.join(parts)
-    
+
     def list_documents(self) -> List[Dict]:
-        """List all documents with metadata"""
+        """List all documents with metadata."""
         result = []
-        
+
         for name in self.documents.keys():
             category = 'general'
             for cat, docs in self.by_category.items():
                 if name in docs:
                     category = cat
                     break
-            
+
             result.append({
                 'name': name,
                 'category': category,
                 'size': len(self.documents[name])
             })
-        
+
         return result
-    
-    def get_reference(self, vuln_type: str) -> str:
-        """Get quick reference for vulnerability type"""
-        
-        query = vuln_type.lower()
+
+    def get_reference(self, ref_type: str) -> str:
+        """Get a reference document by query (was: vuln_type)."""
+        query = ref_type.lower()
         results = self.search(query)
-        
+
         if results:
             return self.documents.get(results[0]['name'], '')
-        
-        return f"No reference found for: {vuln_type}"
+
+        return f"No reference found for: {ref_type}"
 
 
 # Create global instance

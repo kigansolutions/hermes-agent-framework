@@ -1,6 +1,7 @@
 """
-PromptOrchestrator FAISS Vector Memory
-Semantic search for memories using embeddings
+prompt-orchestrator — FAISS Vector Memory
+==========================================
+Semantic search over memories using embeddings.
 """
 
 import os
