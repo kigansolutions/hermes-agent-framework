@@ -1,0 +1,54 @@
+# prompt-orchestrator configuration
+# Copy to config.yaml and edit paths/keys as needed.
+#
+# A live config.yaml with credentials should NEVER be committed —
+# it is excluded by .gitignore.
+
+version: "1.0.0"
+name: "prompt-orchestrator"
+
+# Paths
+knowledge_db: "~/.prompt_orchestrator/knowledge.db"
+workspace: "~/.prompt_orchestrator/workspace"
+
+# Execution
+autonomy: 3           # 0-5: how much the orchestrator acts without asking
+parallel_tasks: 5
+timeout: 300
+
+# Tool settings
+# Each section maps to a registered tool in tools/registry.py
+nuclei:
+  severity: "critical,high,medium"
+  templates_update: true
+
+nmap:
+  default_args: "-sV -sC"
+  timing: "T4"
+
+# Tool paths (override only if not in PATH)
+# These are examples — the registry accepts any CLI tool. Replace
+# with the binaries your workflow needs.
+tools:
+  curl: "curl"
+  dig: "dig"
+  whois: "whois"
+  jq: "jq"
+
+# Notifications
+notify:
+  critical: true
+  complete: false
+
+# Logging
+log_level: "info"           # debug | info | warn | error
+log_file: "~/.prompt_orchestrator/logs/prompt_orchestrator.log"
+
+# Features
+features:
+  infinite_context: true
+  persistent_memory: true
+  parallel_execution: true
+  workflow_chaining: true
+  continuous_monitoring: false
+  control_alignment: true
