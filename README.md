@@ -1,4 +1,4 @@
-# prompt-orchestrator
+# hermes-agent-framework
 
 > A modular Python framework for orchestrating prompt-driven AI agents
 > with persistent multi-layer memory, a markdown-defined skill registry,
@@ -8,8 +8,9 @@
 Built around five primitives: **agents** (role + prompt), **skills**
 (markdown prompt templates), **tools** (CLI/REST wrappers), **memory**
 (5-layer persistence), and **workflows** (composable phases). Same
-architecture underpins Claude Code's tool registry and the Hermes
-agent platform — reference implementation here for inspection.
+architecture underpins the Hermes agent platform I run day to day —
+this is a generic, redacted reference implementation of that
+architecture, open for inspection.
 
 ---
 
@@ -186,8 +187,8 @@ engine.run(workflow, subject="example.com")
 ## Quick start
 
 ```bash
-git clone https://github.com/Koslovski79/prompt-orchestrator
-cd prompt-orchestrator
+git clone https://github.com/kigansolutions/hermes-agent-framework
+cd hermes-agent-framework
 pip install -r requirements.txt
 
 # Run an interactive REPL with the default orchestrator agent
@@ -252,3 +253,7 @@ knowledge/
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## About
+
+Built by [Cameron Weyers](https://github.com/kigansolutions), Kigan Agentic AI Solutions.
