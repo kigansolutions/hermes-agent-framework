@@ -1,9 +1,9 @@
 # hermes-agent-framework
 
-> A modular Python framework for orchestrating prompt-driven AI agents
+> A modular Python reference framework for orchestrating prompt-driven AI agents
 > with persistent multi-layer memory, a markdown-defined skill registry,
-> and a pluggable tool layer. Designed to wrap any CLI/REST tool as a
-> typed operation the agent can invoke.
+> and a pluggable tool layer. Designed to show how CLI/REST tools can be
+> wrapped as typed operations an agent can invoke under local operator control.
 
 Built around five primitives: **agents** (role + prompt), **skills**
 (markdown prompt templates), **tools** (CLI/REST wrappers), **memory**
@@ -11,6 +11,11 @@ Built around five primitives: **agents** (role + prompt), **skills**
 architecture underpins the Hermes agent platform I run day to day —
 this is a generic, redacted reference implementation of that
 architecture, open for inspection.
+
+This public repository is not a production-hardened autonomous assistant or a
+live deployment surface. Treat it as an inspectable framework until CI,
+packaging, command-safety, browser-safety, credential-memory, and runtime
+validation gates are closed.
 
 ---
 
@@ -22,19 +27,19 @@ architecture, open for inspection.
    frontmatter, no code changes needed to retune the system prompt.
 2. **Compose workflows from skills** — each skill is a reusable prompt
    template that wraps a tool or a reasoning pattern.
-3. **Wrap arbitrary tools behind a uniform interface** — `nmap`,
-   `sqlmap`, `curl`, REST APIs, custom Python — same adapter shape.
+3. **Wrap tools behind a uniform interface** — `curl`, REST APIs, custom
+   Python, and local CLI adapters can share the same adapter shape once they
+   are explicitly allowed for a trusted local workflow.
 4. **Remember across sessions** — 5-layer memory: working, semantic
    (vector), episodic (key-value), knowledge (wiki), session (FTS).
 5. **Run workflows in parallel with state save/resume** — the
    execution engine handles parallelism, retries, and crash recovery.
 6. **Expose via CLI, REPL, or Telegram bot** — same engine, multiple
-   surfaces.
+   surfaces, but live surfaces require a separate safety review before use.
 
-The orchestrator is **domain-agnostic**. The same engine has been used
-to drive security assessments, research workflows, smart-contract
-audits, and DevOps automation. Skill sets differ; the engine stays the
-same.
+The orchestrator is **domain-agnostic**. The same engine pattern can support
+security assessments, research workflows, smart-contract audits, and DevOps
+automation. Skill sets differ; the engine stays the same.
 
 ---
 
@@ -113,9 +118,8 @@ Three reference agents ship with the repo:
 
 ### 2. Skills (`skills/*.md`)
 
-Skills are reusable prompt templates. They can wrap a tool (e.g. a
-CLI invocation recipe), encode a reasoning pattern (e.g. structured
-analysis), or both. The skill registry reads them at startup.
+Skills are reusable prompt templates. They can wrap a tool, encode a reasoning
+pattern, or both. The skill registry reads them at startup.
 
 ```markdown
 ---
@@ -131,10 +135,10 @@ Run a structured scan against the subject:
 
 ### 3. Tools (`tools/`, `integration/`)
 
-Tools are Python modules that wrap an external capability behind a
-typed interface. The orchestrator treats them uniformly — `bash`,
-`curl`, `nmap`, `sqlmap`, custom REST APIs, etc. all look the same
-to the agent loop.
+Tools are Python modules that wrap an external capability behind a typed
+interface. This repository includes reference adapters for local CLI execution,
+Caido, browser automation, web search, and Telegram. Some adapters are sensitive
+and are restricted by [the safety policy](docs/safety-policy.md).
 
 Built-in adapters include:
 
@@ -158,16 +162,18 @@ Five layers, each addressing a different recall problem:
 | session    | SQLite FTS5       | full-text search across past sessions     |
 
 The pattern comes from Andrej Karpathy's "LLM Wiki" idea — knowledge
-**compounds** because the LLM rewrites raw observations into
-structured wiki pages over time, instead of re-deriving them each
-session.
+**compounds** because the LLM rewrites raw observations into structured wiki
+pages over time, instead of re-deriving them each session.
+
+Credential-like memory is disabled by policy for public/client-safe use until a
+separate data-handling decision covers consent, encryption, retention, purge,
+and secret-scanning evidence.
 
 ### 5. Workflows (`execution/engine.py`)
 
-Workflows are sequences of phases (each phase = one skill). The
-execution engine runs them with parallelism, retries, and crash
-recovery. State is persisted between phases so a crashed workflow can
-resume mid-flight.
+Workflows are sequences of phases. The execution engine runs them with
+parallelism, retries, and crash recovery. State is persisted between phases so a
+crashed workflow can resume mid-flight.
 
 ```python
 workflow = Workflow(
@@ -189,26 +195,52 @@ engine.run(workflow, subject="example.com")
 ```bash
 git clone https://github.com/kigansolutions/hermes-agent-framework
 cd hermes-agent-framework
+python -m venv .venv
+. .venv/bin/activate
 pip install -r requirements.txt
 
-# Run an interactive REPL with the default orchestrator agent
-python -m prompt_orchestrator --interactive
+# Static smoke validation used by CI. This compiles representative modules
+# without importing them or running live tools.
+python scripts/smoke_validate.py
 
-# Run a workflow by name
-python -m prompt_orchestrator run security-scan --subject example.com
+# Current CLI module path for the reference execution engine
+python -m execution.engine workflow localhost
+python -m execution.engine discover localhost
 
-# Run a single skill against a subject
-python -m prompt_orchestrator skill scan --subject example.com
+# Inspect local knowledge-store commands
+python -m knowledge.knowledge target
 ```
+
+Optional vector-memory and browser-automation dependencies live in
+`requirements-optional.txt`. Install them only in a controlled local environment
+after reviewing [the safety policy](docs/safety-policy.md).
+
+---
+
+## Safety boundaries
+
+- Command execution is trusted-local-operator-only until allowlists, argument
+  handling, scope confirmation, destructive-action gates, audit logging, and
+  safe fixture tests are implemented.
+- Browser stealth mode is restricted security-testing functionality, not a
+  general assistant automation feature.
+- Credential-like memory must not store real passwords, tokens, hashes, client
+  data, payroll data, or private runtime memory until a separate handling
+  decision is recorded.
+- Telegram, Caido, browser automation, live accounts, and private Hermes runtime
+  data are out of scope for this public repository unless Cameron explicitly
+  approves a separate runtime-validation PR.
+
+See [docs/safety-policy.md](docs/safety-policy.md) for the full policy.
 
 ---
 
 ## Reference example: domain modules
 
-The repo ships with reference content for **security assessment** as a
-working example. The domain isn't load-bearing — it's there to show
-how a domain module plugs in. Other domains (research workflows,
-ops automation, content pipelines) follow the same pattern.
+The repo ships with reference content for **security assessment** as a working
+example. The domain is not load-bearing — it is there to show how a domain module
+plugs in. Other domains such as research workflows, ops automation, and content
+pipelines follow the same pattern.
 
 ```
 knowledge/
@@ -233,20 +265,35 @@ knowledge/
 
 ## Design principles
 
-1. **Markdown over code for prompts.** Every system prompt lives in a
-   `.md` file with frontmatter. Retuning the agent is a content edit,
-   not a code change.
-2. **Uniform tool interface.** A scanner for security is structurally
-   identical to a scanner for compliance checks. The orchestrator
-   doesn't know or care what domain the tool belongs to.
-3. **Composing memory.** Each memory layer solves one recall problem.
-   Combining them lets the agent answer questions it couldn't answer
-   from any single layer.
-4. **Crash-safe workflows.** Every phase writes state before yielding.
-   A workflow can be killed mid-flight and resumed without loss.
-5. **Domain agnostic.** The engine has no opinions about the domain.
-   Security, research, ops, content — same engine, different skill
-   sets.
+1. **Markdown over code for prompts.** Every system prompt lives in a `.md` file
+   with frontmatter. Retuning the agent is a content edit, not a code change.
+2. **Uniform tool interface.** A scanner for security is structurally identical
+   to a scanner for compliance checks. The orchestrator does not need domain
+   knowledge to route tool results.
+3. **Composing memory.** Each memory layer solves one recall problem. Combining
+   them lets the agent answer questions it could not answer from any single
+   layer.
+4. **Crash-safe workflows.** Every phase writes state before yielding. A workflow
+   can be killed mid-flight and resumed without loss.
+5. **Domain agnostic.** The engine has no opinions about the domain. Security,
+   research, ops, content — same engine, different skill sets.
+6. **Safety before autonomy.** Public and live surfaces need explicit gates
+   before shell execution, browser automation, credential handling, or external
+   account actions are exposed.
+
+---
+
+## Validation
+
+Pull requests and pushes to `main` run `.github/workflows/ci.yml`, which:
+
+- installs base dependencies from `requirements.txt`;
+- compiles representative Python modules;
+- confirms the license, safety policy, optional dependency file, and corrected
+  quick-start path are present.
+
+The smoke check does not import Hermes modules, run shell commands, start a
+browser, access Telegram/Caido, or touch live runtime data.
 
 ---
 
